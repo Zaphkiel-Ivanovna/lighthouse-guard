@@ -19,7 +19,7 @@ const accordionData = [
 
 export default function FAQScreen() {
   return (
-    <YStack flex={1} items='center' gap='$8' px='$2' pt='$5' bg='$background'>
+    <YStack flex={1} items='center' gap='$8' px='$2' pt='$5'>
       <Accordion overflow='hidden' width='100%' type='multiple'>
         {accordionData.map((item) => (
           <Accordion.Item key={item.id} value={item.id}>

@@ -79,7 +79,7 @@ export class LighthouseService {
       );
     } catch (error) {
       logger.error('Error reading status:', error);
-      return LighthouseState.UNKNOWN;
+      return LighthouseState.ERROR;
     }
   }
 
@@ -232,7 +232,9 @@ export class LighthouseService {
       const newState = await this.getLighthouseStatus(device);
 
       logger.debug(
-        `Polling ${deviceId}: ${newState}${targetState ? ` → ${targetState}` : ''}`
+        `Polling ${deviceId}: ${newState}${
+          targetState ? ` → ${targetState}` : ''
+        }`
       );
 
       if (targetState && newState === targetState) {

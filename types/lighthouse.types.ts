@@ -23,6 +23,7 @@ export enum LighthouseState {
   SLEEP = 'sleep',
   OFF = 'off',
   UNKNOWN = 'unknown',
+  ERROR = 'error',
 }
 
 export type LighthouseDevice = Device & {

@@ -26,12 +26,14 @@ export const handleScanError = (
   }
 
   if (error.errorCode === BleErrorCode.BluetoothPoweredOff) {
-    onError('Bluetooth is turned off. Please enable Bluetooth to scan for devices.');
+    onError(
+      'Bluetooth is turned off. Please enable Bluetooth to scan for devices.'
+    );
     logger.warn('Bluetooth is powered off');
     return;
   }
 
   const errorMessage = error.message || 'An unknown Bluetooth error occurred';
   onError(`Bluetooth error: ${errorMessage}`);
-  logger.error('BLE scan error:', error);
+  logger.error('BLE scan error:', error, error.errorCode);
 };

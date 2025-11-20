@@ -4,7 +4,7 @@ import { LinearGradient } from 'tamagui/linear-gradient';
 import { LighthousePowerCommand } from 'types/lighthouse.types';
 
 import { Power, PowerOff, Moon } from '@tamagui/lucide-icons';
-import { ButtonProps, Spinner } from 'tamagui';
+import { ButtonProps, ColorTokens, Spinner } from 'tamagui';
 import { useLighthouseStore } from 'stores/lighthouse.store';
 import { CircularButton } from '../CircularButton';
 
@@ -20,15 +20,6 @@ const ICON_FROM_COMMAND: Record<
   [LighthousePowerCommand.ON]: Power,
   [LighthousePowerCommand.STANDBY]: PowerOff,
   [LighthousePowerCommand.SLEEP]: Moon,
-};
-
-const COLORS_FROM_COMMAND: Record<
-  LighthousePowerCommand,
-  [string, string, ...string[]]
-> = {
-  [LighthousePowerCommand.ON]: ['#10b981', '#059669'],
-  [LighthousePowerCommand.STANDBY]: ['#ef4444', '#dc2626'],
-  [LighthousePowerCommand.SLEEP]: ['#3b82f6', '#2563eb'],
 };
 
 export const LighthousePowerButton: FC<Props> = ({
@@ -80,16 +71,10 @@ export const LighthousePowerButton: FC<Props> = ({
         disabled={isDisabled}
         {...props}
       >
-        <LinearGradient
-          colors={COLORS_FROM_COMMAND[powerCommand]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={StyleSheet.absoluteFill}
-        />
         {commandState?.isLoading ? (
-          <Spinner color='white' />
+          <Spinner color='white' size='large' />
         ) : (
-          <Icon size={28} className='text-foreground' />
+          <Icon size={28} color={isDisabled ? '$black5' : '$white1'} />
         )}
       </CircularButton>
     </Animated.View>
