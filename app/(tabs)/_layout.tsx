@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
-import { useTheme } from 'tamagui';
-import { Home, AudioWaveform } from '@tamagui/lucide-icons';
+import { GetThemeValueForKey, useTheme, getToken } from 'tamagui';
+import { Home, AudioWaveform, Settings } from '@tamagui/lucide-icons';
 import { Platform, useColorScheme } from 'react-native';
 import LogoLight from '../../assets/logo-light.png';
 import { Image } from 'react-native';
@@ -28,6 +28,9 @@ export default function TabLayout() {
         headerRightContainerStyle: {
           paddingRight: 16,
         },
+        headerLeftContainerStyle: {
+          paddingLeft: 6,
+        },
         headerTitleAlign: 'left',
         animation: 'shift',
         sceneStyle: {
@@ -42,17 +45,22 @@ export default function TabLayout() {
         name='index'
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <Home color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <Home color={focused ? theme.accent1 : theme.white10} />
+          ),
           headerRight: () => <ScanButton />,
         }}
       />
       <Tabs.Screen
         name='two'
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <AudioWaveform color={color} />,
+          title: 'Settings',
+          tabBarIcon: ({ focused }) => (
+            <Settings color={focused ? theme.accent1 : theme.white10} />
+          ),
         }}
       />
+      <Tabs.Screen name='[id]' options={{ title: 'Device', href: null }} />
     </Tabs>
   );
 }

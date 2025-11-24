@@ -21,6 +21,7 @@ export interface ChipProps {
   icon?: ReactNode;
   /** Optional icon to display after the text */
   endIcon?: ReactNode;
+  opacity?: number;
 }
 
 const SIZE_CONFIG = {
@@ -57,6 +58,7 @@ export const Chip: FC<ChipProps> = ({
   endIcon,
   backgroundColor,
   borderColor,
+  opacity,
   ...props
 }) => {
   const sizeConfig = SIZE_CONFIG[size];
@@ -103,6 +105,7 @@ export const Chip: FC<ChipProps> = ({
       px={sizeConfig.paddingHorizontal}
       py={sizeConfig.paddingVertical}
       gap={sizeConfig.gap}
+      opacity={opacity}
       {...props}
     >
       {icon}

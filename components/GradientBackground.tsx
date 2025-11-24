@@ -8,13 +8,7 @@ interface Props {
 }
 
 export const GradientBackground: FC<Props> = ({ children }) => {
-  const colors = [
-    '#004f87',
-    '#000000FF',
-    '#000000FF',
-    '#000000FF',
-    '#000000FF',
-  ] as const;
+  const colors = ['#0f0f0f', '#000000'] as const;
 
   return (
     <LinearGradient

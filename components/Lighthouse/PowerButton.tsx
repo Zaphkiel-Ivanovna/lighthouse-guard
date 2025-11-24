@@ -1,30 +1,25 @@
-import { FC, useRef } from 'react';
-import { Animated, StyleSheet } from 'react-native';
-import { LinearGradient } from 'tamagui/linear-gradient';
-import { LighthousePowerCommand } from 'types/lighthouse.types';
+import { FC, useMemo, useRef } from 'react';
+import { Animated } from 'react-native';
+import { LighthouseState } from 'types/lighthouse.types';
 
-import { Power, PowerOff, Moon } from '@tamagui/lucide-icons';
-import { ButtonProps, ColorTokens, Spinner } from 'tamagui';
+import { ButtonProps, Spinner } from 'tamagui';
 import { useLighthouseStore } from 'stores/lighthouse.store';
 import { CircularButton } from '../CircularButton';
+import {
+  COLOR_FROM_LIGHTHOUSE_STATE,
+  COLOR_FROM_POWER_COMMAND,
+  ICON_FROM_COMMAND,
+  POWER_COMMAND_FROM_STATE,
+} from '@/utils/constants';
 
 interface Props extends Omit<ButtonProps, 'onPress'> {
   readonly deviceId: string;
-  readonly powerCommand: LighthousePowerCommand;
+  readonly state: LighthouseState;
 }
-
-const ICON_FROM_COMMAND: Record<
-  LighthousePowerCommand,
-  ReturnType<typeof Power>
-> = {
-  [LighthousePowerCommand.ON]: Power,
-  [LighthousePowerCommand.STANDBY]: PowerOff,
-  [LighthousePowerCommand.SLEEP]: Moon,
-};
 
 export const LighthousePowerButton: FC<Props> = ({
   deviceId,
-  powerCommand,
+  state,
   size,
   ...props
 }) => {
@@ -55,6 +50,7 @@ export const LighthousePowerButton: FC<Props> = ({
     }).start();
   };
 
+  const powerCommand = useMemo(() => POWER_COMMAND_FROM_STATE[state], [state]);
   const handleCommand = async () => {
     await sendPowerCommand(deviceId, powerCommand);
   };
@@ -69,12 +65,18 @@ export const LighthousePowerButton: FC<Props> = ({
         onPressIn={isDisabled ? undefined : handlePressIn}
         onPressOut={isDisabled ? undefined : handlePressOut}
         disabled={isDisabled}
+        bg={COLOR_FROM_POWER_COMMAND[powerCommand].backgroundColor}
+        shadowColor={COLOR_FROM_POWER_COMMAND[powerCommand].shadowColor}
+        shadowRadius={8}
+        borderColor={COLOR_FROM_POWER_COMMAND[powerCommand].shadowColor}
+        borderWidth='$1'
+        opacity={isDisabled ? 0.6 : 1}
         {...props}
       >
         {commandState?.isLoading ? (
           <Spinner color='white' size='large' />
         ) : (
-          <Icon size={28} color={isDisabled ? '$black5' : '$white1'} />
+          <Icon size={28} />
         )}
       </CircularButton>
     </Animated.View>

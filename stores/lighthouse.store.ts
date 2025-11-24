@@ -16,6 +16,7 @@ import {
 import { Logger } from '../utils/logger';
 import { requestBLEPermissions } from '../utils/permissions';
 import { useSettingsStore } from './settings.store';
+import { transformLighthouse } from 'transformers/lighthouse.transformers';
 
 const logger = new Logger('LighthouseStore');
 
@@ -159,6 +160,7 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
           if (!existingDevice) {
             const lighthouseDevice = Object.assign(device, {
               state: LighthouseState.UNKNOWN,
+              canControl: false,
             }) as LighthouseDevice;
 
             set((state) => ({
@@ -189,7 +191,7 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
             return {
               devices: {
                 ...currentState.devices,
-                [deviceId]: Object.assign(device, { state }),
+                [deviceId]: transformLighthouse(device, state),
               },
             };
           });

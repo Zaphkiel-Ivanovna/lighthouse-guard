@@ -1,5 +1,5 @@
 import { FC, ReactNode } from 'react';
-import { Stack, StackProps, useTheme } from 'tamagui';
+import { Circle, Stack, StackProps, useTheme } from 'tamagui';
 import { cloneElement, isValidElement } from 'react';
 
 interface CircularButtonProps extends Omit<StackProps, 'children'> {
@@ -15,7 +15,7 @@ export const CircularButton: FC<CircularButtonProps> = ({
   const theme = useTheme();
 
   return (
-    <Stack
+    <Circle
       width={circleSize}
       height={circleSize}
       borderBottomLeftRadius={circleSize / 2}
@@ -25,7 +25,6 @@ export const CircularButton: FC<CircularButtonProps> = ({
       justify='center'
       items='center'
       cursor='pointer'
-      overflow='hidden'
       {...props}
     >
       {isValidElement(children)
@@ -33,7 +32,7 @@ export const CircularButton: FC<CircularButtonProps> = ({
             color: theme.color?.get?.() || '$color',
           } as any)
         : children}
-    </Stack>
+    </Circle>
   );
 };
 

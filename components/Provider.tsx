@@ -8,14 +8,8 @@ export function Provider({
   children,
   ...rest
 }: Omit<TamaguiProviderProps, 'config'>) {
-  const colorScheme = useColorScheme();
-
   return (
-    <TamaguiProvider
-      config={config}
-      defaultTheme={colorScheme === 'dark' ? 'dark' : 'light'}
-      {...rest}
-    >
+    <TamaguiProvider config={config} defaultTheme={'dark'} {...rest}>
       <ToastProvider
         swipeDirection='horizontal'
         duration={6000}

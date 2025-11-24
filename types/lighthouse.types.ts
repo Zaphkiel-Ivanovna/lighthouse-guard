@@ -28,4 +28,5 @@ export enum LighthouseState {
 
 export type LighthouseDevice = Device & {
   state: LighthouseState;
+  canControl: boolean;
 };

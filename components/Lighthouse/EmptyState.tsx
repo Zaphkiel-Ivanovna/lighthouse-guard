@@ -35,16 +35,21 @@ export const LighthouseEmptyState: FC = () => {
 
       <Button
         size='$5'
-        bg='$blue9'
+        bg='$black4'
         color='$white1'
-        rounded='$10'
+        borderWidth='$1'
+        borderColor='$borderColor'
+        rounded='$8'
         px='$8'
         onPress={handleScan}
         disabled={isScanning}
-        pressStyle={{
-          bg: '$blue10',
-          scale: 0.98,
-        }}
+        icon={
+          isScanning ? (
+            <Spinner size='small' color='$white1' />
+          ) : (
+            <Radar size={20} color='$white1' />
+          )
+        }
       >
         {isScanning ? (
           <>
