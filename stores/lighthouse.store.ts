@@ -12,6 +12,7 @@ import {
   LighthouseDevice,
   LighthousePowerCommand,
   LighthouseState,
+  LighthouseMetadata,
 } from '../types/lighthouse.types';
 import { Logger } from '../utils/logger';
 import { requestBLEPermissions } from '../utils/permissions';
@@ -59,7 +60,11 @@ interface LighthouseStoreState {
     error?: string
   ) => void;
   addOrUpdateDevice: (device: Device) => Promise<void>;
-  updateDeviceState: (deviceId: string, state: LighthouseState) => void;
+  updateDeviceInfos: (
+    deviceId: string,
+    state: LighthouseState,
+    metadata?: LighthouseMetadata
+  ) => void;
   clearDevices: () => void;
   startScan: () => void;
   stopScan: () => void;
@@ -150,9 +155,9 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
             mockLighthouseService,
           } = get();
           const isDebugMode = useSettingsStore.getState().isDebugMode;
-          const service = isDebugMode
-            ? mockLighthouseService
-            : lighthouseService;
+          const service = !isDebugMode
+            ? lighthouseService
+            : mockLighthouseService;
 
           if (processingDevices.has(device.id)) return;
 
@@ -174,8 +179,8 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
           processingDevices.add(device.id);
 
           try {
-            const state = await service.processDevice(device);
-            get().updateDeviceState(device.id, state);
+            const { state, metadata } = await service.processDevice(device);
+            get().updateDeviceInfos(device.id, state, metadata);
           } catch (error) {
             logger.error('Failed to get lighthouse status:', error);
           } finally {
@@ -183,7 +188,11 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
           }
         },
 
-        updateDeviceState: (deviceId: string, state: LighthouseState) => {
+        updateDeviceInfos: (
+          deviceId: string,
+          state: LighthouseState,
+          metadata?: LighthouseMetadata
+        ) => {
           set((currentState) => {
             const device = currentState.devices[deviceId];
             if (!device) return {};
@@ -191,7 +200,15 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
             return {
               devices: {
                 ...currentState.devices,
-                [deviceId]: transformLighthouse(device, state),
+                [deviceId]: transformLighthouse(
+                  device,
+                  state,
+                  metadata ?? {
+                    firmwareRevision: device.firmwareRevision,
+                    modelNumber: device.modelNumber,
+                    manufacturerName: device.manufacturerName,
+                  }
+                ),
               },
             };
           });
@@ -316,7 +333,7 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
             stopPolling,
             lighthouseService,
             mockLighthouseService,
-            updateDeviceState,
+            updateDeviceInfos,
           } = get();
           const isDebugMode = useSettingsStore.getState().isDebugMode;
           const service = isDebugMode
@@ -344,7 +361,7 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
                 deviceId,
                 targetState
               );
-              updateDeviceState(deviceId, newState);
+              updateDeviceInfos(deviceId, newState, undefined);
 
               if (targetState && newState === targetState) {
                 stopPolling(deviceId);

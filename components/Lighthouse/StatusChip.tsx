@@ -18,16 +18,16 @@ const LIGHTHOUSE_STATUS_CHIP_PROPS: Record<
   },
   [LighthouseState.STANDBY]: {
     label: 'Standby',
-    backgroundColor: '$blue7',
-    textColor: '$blue11',
+    backgroundColor: '$red7',
+    textColor: '$red11',
   },
   [LighthouseState.ON]: {
-    label: 'On',
+    label: 'Awake',
     backgroundColor: '$green7',
     textColor: '$green11',
   },
   [LighthouseState.SLEEP]: {
-    label: 'Sleep',
+    label: 'Sleeping',
     backgroundColor: '$blue7',
     textColor: '$blue11',
   },
@@ -50,9 +50,19 @@ const LIGHTHOUSE_STATUS_CHIP_PROPS: Record<
 
 interface Props {
   readonly state: LighthouseState;
+  readonly fontSize?: GetThemeValueForKey<'fontSize'>;
+  readonly fontWeight?: GetThemeValueForKey<'fontWeight'>;
+  readonly px?: GetThemeValueForKey<'paddingHorizontal'>;
+  readonly py?: GetThemeValueForKey<'paddingVertical'>;
 }
 
-export const LighthouseStatusChip: FC<Props> = ({ state }) => {
+export const LighthouseStatusChip: FC<Props> = ({
+  state,
+  fontSize = '$3',
+  fontWeight = '600',
+  px = '$2',
+  py = '$1.5',
+}) => {
   const props = LIGHTHOUSE_STATUS_CHIP_PROPS[state];
 
   return (
@@ -62,10 +72,10 @@ export const LighthouseStatusChip: FC<Props> = ({ state }) => {
       rounded='$10'
       bg={props.backgroundColor}
       gap='$1'
-      px='$2'
-      py='$1.5'
+      px={px}
+      py={py}
     >
-      <Text color={props.textColor} fontWeight='600' fontSize='$3'>
+      <Text color={props.textColor} fontWeight={fontWeight} fontSize={fontSize}>
         {props.label}
       </Text>
     </XStack>

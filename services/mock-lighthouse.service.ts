@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer';
 import { Device } from 'react-native-ble-plx';
 import {
+  LighthouseMetadata,
   LighthousePowerCommand,
   LighthouseState,
 } from '../types/lighthouse.types';
@@ -30,7 +31,9 @@ export class MockLighthouseService {
 
   createFakeDevice(customName?: string): Device {
     this.deviceCounter++;
-    const deviceId = `MOCK-LHB-${this.deviceCounter.toString().padStart(4, '0')}`;
+    const deviceId = `MOCK-LHB-${this.deviceCounter
+      .toString()
+      .padStart(4, '0')}`;
     const deviceName =
       customName ||
       `LHB-${this.deviceCounter.toString(16).toUpperCase().padStart(8, '0')}`;
@@ -120,6 +123,10 @@ export class MockLighthouseService {
         // Handle power characteristic
         const command = Buffer.from(value, 'base64')[0];
         logger.debug(`Command ${command} sent to ${mockDevice.name}`);
+
+        if (command === undefined) {
+          return;
+        }
 
         // Start state transition
         const targetState = this.commandToTargetState(command);
@@ -212,14 +219,32 @@ export class MockLighthouseService {
     return mockDevice.currentState;
   }
 
+  async getLighthouseMetadata(device: Device): Promise<LighthouseMetadata> {
+    await wait(100); // Simulate BLE delay
+
+    const mockDevice = this.mockDevices.get(device.id);
+    if (!mockDevice) {
+      throw new Error('Mock device not found');
+    }
+
+    return {
+      firmwareRevision: '1.0.0',
+      modelNumber: 'LHB-0001',
+      manufacturerName: 'Mock Manufacturer',
+    };
+  }
+
   async getDeviceStatus(device: Device): Promise<LighthouseState> {
     return this.getLighthouseStatus(device);
   }
 
-  async processDevice(device: Device): Promise<LighthouseState> {
+  async processDevice(
+    device: Device
+  ): Promise<{ state: LighthouseState; metadata: LighthouseMetadata }> {
     try {
       const state = await this.getLighthouseStatus(device);
-      return state;
+      const metadata = await this.getLighthouseMetadata(device);
+      return { state, metadata };
     } catch (error) {
       logger.error('Failed to get lighthouse status:', error);
       throw error;
@@ -321,7 +346,9 @@ export class MockLighthouseService {
       const newState = await this.getLighthouseStatus(device);
 
       logger.debug(
-        `Polling ${deviceId}: ${newState}${targetState ? ` → ${targetState}` : ''}`
+        `Polling ${deviceId}: ${newState}${
+          targetState ? ` → ${targetState}` : ''
+        }`
       );
 
       if (targetState && newState === targetState) {

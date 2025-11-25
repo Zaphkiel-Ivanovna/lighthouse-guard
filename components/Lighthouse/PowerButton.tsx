@@ -1,8 +1,11 @@
 import { FC, useMemo, useRef } from 'react';
 import { Animated } from 'react-native';
-import { LighthouseState } from 'types/lighthouse.types';
+import {
+  LighthousePowerCommand,
+  LighthouseState,
+} from 'types/lighthouse.types';
 
-import { ButtonProps, Spinner } from 'tamagui';
+import { ButtonProps, Spinner, Switch } from 'tamagui';
 import { useLighthouseStore } from 'stores/lighthouse.store';
 import { CircularButton } from '../CircularButton';
 import {
@@ -11,16 +14,19 @@ import {
   ICON_FROM_COMMAND,
   POWER_COMMAND_FROM_STATE,
 } from '@/utils/constants';
+import { FancyLoader } from '../FancyLoader';
 
 interface Props extends Omit<ButtonProps, 'onPress'> {
   readonly deviceId: string;
   readonly state: LighthouseState;
+  readonly powerCommand?: LighthousePowerCommand;
 }
 
 export const LighthousePowerButton: FC<Props> = ({
   deviceId,
   state,
   size,
+  powerCommand,
   ...props
 }) => {
   const sendPowerCommand = useLighthouseStore(
@@ -50,33 +56,49 @@ export const LighthousePowerButton: FC<Props> = ({
     }).start();
   };
 
-  const powerCommand = useMemo(() => POWER_COMMAND_FROM_STATE[state], [state]);
+  const powerCommandAction = useMemo(
+    () =>
+      powerCommand !== undefined
+        ? powerCommand
+        : POWER_COMMAND_FROM_STATE[state],
+    [state, powerCommand]
+  );
   const handleCommand = async () => {
-    await sendPowerCommand(deviceId, powerCommand);
+    await sendPowerCommand(deviceId, powerCommandAction);
   };
 
-  const Icon = ICON_FROM_COMMAND[powerCommand];
+  const Icon = ICON_FROM_COMMAND[powerCommandAction];
   const isDisabled = commandState?.isLoading || props.disabled;
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      {/* <Switch size='$5' disabled={isDisabled} bg='$black5'>
+        <Switch.Thumb
+          animation='bouncy'
+          bg={COLOR_FROM_LIGHTHOUSE_STATE[state].logoColor}
+          shadowColor={COLOR_FROM_POWER_COMMAND[powerCommandAction].shadowColor}
+          shadowRadius={8}
+        >
+          <Icon size={28} shadowRadius={8} shadowColor='$white1' />
+        </Switch.Thumb>
+      </Switch> */}
       <CircularButton
         onPress={handleCommand}
         onPressIn={isDisabled ? undefined : handlePressIn}
         onPressOut={isDisabled ? undefined : handlePressOut}
         disabled={isDisabled}
-        bg={COLOR_FROM_POWER_COMMAND[powerCommand].backgroundColor}
-        shadowColor={COLOR_FROM_POWER_COMMAND[powerCommand].shadowColor}
+        bg={COLOR_FROM_POWER_COMMAND[powerCommandAction].backgroundColor}
+        shadowColor={COLOR_FROM_POWER_COMMAND[powerCommandAction].shadowColor}
         shadowRadius={8}
-        borderColor={COLOR_FROM_POWER_COMMAND[powerCommand].shadowColor}
+        borderColor={COLOR_FROM_POWER_COMMAND[powerCommandAction].shadowColor}
         borderWidth='$1'
         opacity={isDisabled ? 0.6 : 1}
         {...props}
       >
         {commandState?.isLoading ? (
-          <Spinner color='white' size='large' />
+          <FancyLoader color='$white12' size={28} />
         ) : (
-          <Icon size={28} />
+          <Icon size={28} shadowRadius={8} shadowColor='$white1' />
         )}
       </CircularButton>
     </Animated.View>

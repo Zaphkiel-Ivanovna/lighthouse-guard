@@ -26,7 +26,14 @@ export enum LighthouseState {
   ERROR = 'error',
 }
 
-export type LighthouseDevice = Device & {
-  state: LighthouseState;
-  canControl: boolean;
+export type LighthouseDevice = Device &
+  LighthouseMetadata & {
+    readonly state: LighthouseState;
+    readonly canControl: boolean;
+  };
+
+export type LighthouseMetadata = {
+  readonly firmwareRevision: string;
+  readonly modelNumber: string;
+  readonly manufacturerName: string;
 };

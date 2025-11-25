@@ -5,23 +5,56 @@ import {
   LighthousePowerCommand,
   LighthouseState,
 } from '@/types/lighthouse.types';
-import { ArrowLeft, PenSquare, Star, Wifi } from '@tamagui/lucide-icons';
+import {
+  ArrowLeft,
+  Lightbulb,
+  PenSquare,
+  ScanSearch,
+  Sparkle,
+  Sparkles,
+  Star,
+  Wifi,
+} from '@tamagui/lucide-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useEffect, useMemo } from 'react';
-import { Card, Circle, Text, XStack, YStack } from 'tamagui';
-import { SinglePowerButton } from '@/components/Lighthouse/SinglePowerButton';
-import { IdentifyButton } from '@/components/Lighthouse/IdentifyButton';
-import { getSignalInfo } from '@/utils/signal';
+import {
+  Card,
+  Circle,
+  ListItem,
+  Separator,
+  Text,
+  XStack,
+  YGroup,
+  YStack,
+  ScrollView,
+  Button,
+} from 'tamagui';
+import { LighthouseIdentifyButton } from '@/components/Lighthouse/IdentifyButton';
+import { getSignalInfo, getSignalStrengthLabel } from '@/utils/signal';
+import { LighthousePowerButton } from '@/components/Lighthouse/PowerButton';
+import { COLOR_FROM_LIGHTHOUSE_STATE } from '@/utils/constants';
+import { LighthouseStatusChip } from '@/components/Lighthouse/StatusChip';
+import { ICON_FROM_STATE } from '@/utils/constants';
+import { ZoomIn } from 'react-native-reanimated';
 
 export default function LighthouseDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const navigation = useNavigation();
 
-  const getDeviceById = useLighthouseStore((state) => state.getDeviceById);
-  const getDeviceDisplayName = useLighthouseStore(
-    (state) => state.getDeviceDisplayName
+  const device = useLighthouseStore((state) => state.devices[id]);
+  const deviceCustomName = useLighthouseStore(
+    (state) => state.customDeviceNames[id]
   );
+
+  const deviceStrength = useMemo(() => {
+    if (!device) {
+      return null;
+    }
+
+    return getSignalInfo(device.rssi);
+  }, [device?.rssi]);
+
   const setCustomDeviceName = useLighthouseStore(
     (state) => state.setCustomDeviceName
   );
@@ -34,28 +67,17 @@ export default function LighthouseDetailScreen() {
     (state) => state.customDeviceNames
   );
 
-  const device = getDeviceById(id);
-  const displayName = useMemo(
-    () => getDeviceDisplayName(id),
-    [id, customDeviceNames]
-  );
+  console.log('device', device);
 
   const canControl = useMemo(
     () => device?.state !== LighthouseState.UNKNOWN || commandState?.isLoading,
     [device?.state, commandState?.isLoading]
   );
 
-  const isPowerDisabled =
-    !device ||
-    device.state === LighthouseState.UNKNOWN ||
-    device.state === LighthouseState.BOOTING ||
-    commandState?.isLoading;
-
-  console.log(device);
-
   const handleRename = () => {
+    console.log('handleRename');
     if (device) {
-      openRenameDialog(device, displayName);
+      openRenameDialog(device, 'displayName');
     }
   };
 
@@ -63,28 +85,16 @@ export default function LighthouseDetailScreen() {
     setCustomDeviceName(id, newName);
   };
 
+  const Icon = useMemo(() => {
+    if (!device) {
+      return null;
+    }
+
+    return ICON_FROM_STATE[device.state];
+  }, [device?.state]);
+
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <YStack ml='$2'>
-          <Text
-            numberOfLines={1}
-            fontWeight='800'
-            fontSize='$6'
-            ellipsizeMode='tail'
-          >
-            {displayName}
-          </Text>
-          <Text
-            numberOfLines={1}
-            color='$black11'
-            fontSize='$2'
-            ellipsizeMode='tail'
-          >
-            {device?.id}
-          </Text>
-        </YStack>
-      ),
       headerLeft: () => (
         <CircularButton
           onPress={() => router.back()}
@@ -100,7 +110,7 @@ export default function LighthouseDetailScreen() {
         </CircularButton>
       ),
     });
-  }, [navigation, displayName, customDeviceNames]);
+  }, [navigation, customDeviceNames]);
 
   if (!device) {
     return (
@@ -112,112 +122,103 @@ export default function LighthouseDetailScreen() {
     );
   }
 
-  const signalInfo = getSignalInfo(device.rssi);
-  const signalDescription =
-    signalInfo.rssi != null
-      ? `Signal strength: ${signalInfo.label} (${signalInfo.rssi} dBm)`
-      : 'Signal strength: Unknown';
-
-  const statusTitle =
-    device.state === LighthouseState.ON
-      ? 'Active'
-      : device.state === LighthouseState.STANDBY
-      ? 'Standby'
-      : device.state === LighthouseState.SLEEP
-      ? 'Sleep'
-      : device.state === LighthouseState.OFF
-      ? 'Off'
-      : 'Unknown';
-
   return (
-    <YStack flex={1} p='$4'>
-      <YStack mb='$4' gap='$3'>
-        <Card
-          px='$4'
-          py='$3'
-          rounded='$6'
-          borderColor='$black5'
-          borderWidth='$1'
-          bg='$black3'
-        >
-          <XStack justify='space-between' items='center'>
-            <XStack gap='$3' items='center'>
-              <Circle size={40} bg='rgba(34, 197, 94, 0.25)'>
-                <Wifi size={24} color='white' />
-              </Circle>
-              <YStack>
-                <Text fontSize='$6' fontWeight='700'>
-                  {statusTitle}
-                </Text>
-                <Text fontSize='$3' color='$black11'>
-                  {signalDescription}
-                </Text>
-              </YStack>
-            </XStack>
-            <Circle size={12} bg='$green10' />
-          </XStack>
-        </Card>
-      </YStack>
-      <YStack mb='$4' gap='$3'>
-        <Text fontSize='$8' fontWeight='700'>
-          Quick Actions
-        </Text>
-        <XStack gap='$1' flexWrap='wrap' justify='space-between'>
-          <SinglePowerButton
-            label='Power'
-            powerCommand={LighthousePowerCommand.ON}
-            deviceId={device.id}
-            isDisabled={isPowerDisabled}
-          />
-          <SinglePowerButton
-            label='Standby'
-            powerCommand={LighthousePowerCommand.STANDBY}
-            deviceId={device.id}
-            isDisabled={!canControl}
-          />
-          <SinglePowerButton
-            label='Sleep'
-            powerCommand={LighthousePowerCommand.SLEEP}
-            deviceId={device.id}
-            isDisabled={!canControl}
-          />
-          <IdentifyButton deviceId={device.id} isDisabled={!canControl} />
-        </XStack>
-      </YStack>
-      <YStack gap='$3'>
-        <Text fontSize='$8' fontWeight='700'>
-          Details
-        </Text>
-        <Card
-          px='$4'
-          py='$2'
-          borderColor='$black5'
-          borderWidth='$1'
-          rounded='$6'
-          gap='$2'
-        >
-          <XStack
-            justify='space-between'
-            borderBottomWidth='$1'
-            borderColor='$black5'
-            py='$2'
+    <ScrollView>
+      <YStack flex={1} gap='$6' p='$4'>
+        <YStack gap='$4' width='100%' items='center'>
+          <Circle
+            size='$11'
+            borderColor={
+              COLOR_FROM_LIGHTHOUSE_STATE[device.state].backgroundColor
+            }
+            shadowColor={COLOR_FROM_LIGHTHOUSE_STATE[device.state].logoColor}
+            shadowRadius={24}
+            shadowOpacity={1}
           >
-            <Text fontSize='$5' color='$black11'>
-              Name
-            </Text>
-            <XStack gap='$2'>
-              <Text fontSize='$6'>{device.name}</Text>
-              <PenSquare size={20} color='$black11' />
-            </XStack>
+            <Icon
+              size='$10'
+              color={COLOR_FROM_LIGHTHOUSE_STATE[device.state].logoColor}
+            />
+          </Circle>
+          <Text fontSize='$8' fontWeight='700'>
+            {deviceCustomName || device.name}
+          </Text>
+          <LighthouseStatusChip
+            state={device.state}
+            px='$3'
+            py='$2'
+            fontSize='$5'
+            fontWeight='600'
+          />
+        </YStack>
+        <YStack gap='$3'>
+          <XStack gap='$1' flexWrap='wrap' justify='space-evenly'>
+            <LighthousePowerButton
+              deviceId={device.id}
+              state={device.state}
+              disabled={!canControl}
+              powerCommand={LighthousePowerCommand.ON}
+            />
+            <LighthousePowerButton
+              deviceId={device.id}
+              state={device.state}
+              disabled={!canControl}
+              powerCommand={LighthousePowerCommand.STANDBY}
+            />
+            <LighthousePowerButton
+              deviceId={device.id}
+              state={device.state}
+              disabled={!canControl}
+              powerCommand={LighthousePowerCommand.SLEEP}
+            />
           </XStack>
-          <XStack justify='space-between' py='$2'>
-            <Text fontSize='$5' color='$black11'>
-              ID
-            </Text>
-            <Text fontSize='$6'>{device.id}</Text>
-          </XStack>
-        </Card>
+        </YStack>
+        <YGroup
+          separator={<Separator borderColor='$black5' />}
+          borderColor='$black5'
+          borderWidth='$1'
+        >
+          <YGroup.Item>
+            <ListItem
+              title='Name'
+              subTitle={deviceCustomName || device.name}
+              iconAfter={
+                <PenSquare onPress={handleRename} size={24} color='$black11' />
+              }
+            />
+          </YGroup.Item>
+          {deviceCustomName && (
+            <YGroup.Item>
+              <ListItem title='Original Name' subTitle={device.name} />
+            </YGroup.Item>
+          )}
+          <YGroup.Item>
+            <ListItem title='ID' subTitle={device.id} />
+          </YGroup.Item>
+          <YGroup.Item>
+            <ListItem title='Signal' subTitle={deviceStrength?.label} />
+          </YGroup.Item>
+          <YGroup.Item>
+            <ListItem title='Model Number' subTitle={device.modelNumber} />
+          </YGroup.Item>
+          <YGroup.Item>
+            <ListItem title='Firmware' subTitle={device.firmwareRevision} />
+          </YGroup.Item>
+          <YGroup.Item>
+            <ListItem title='Manufacturer' subTitle={device.manufacturerName} />
+          </YGroup.Item>
+          <YGroup.Item>
+            <ListItem
+              title='Spot my Lighthouse'
+              subTitle='Tap to make the LED blink'
+              iconAfter={<ScanSearch size={24} color='$black11' />}
+              onPress={() => {
+                console.log('Spot my Lighthouse');
+              }}
+            />
+          </YGroup.Item>
+        </YGroup>
       </YStack>
-    </YStack>
+    </ScrollView>
   );
 }

@@ -36,6 +36,10 @@ interface Props {
 export const SignalChip: FC<Props> = ({ level, label }) => {
   const Icon = useMemo(() => ICON_FROM_SIGNAL_LEVEL[level], [level]);
 
+  if (Icon === undefined) {
+    return null;
+  }
+
   return (
     <YStack position='relative' width={26} height={26}>
       <YStack position='absolute' opacity={0.3}>
