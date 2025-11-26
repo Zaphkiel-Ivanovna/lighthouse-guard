@@ -72,16 +72,6 @@ export const LighthousePowerButton: FC<Props> = ({
 
   return (
     <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-      {/* <Switch size='$5' disabled={isDisabled} bg='$black5'>
-        <Switch.Thumb
-          animation='bouncy'
-          bg={COLOR_FROM_LIGHTHOUSE_STATE[state].logoColor}
-          shadowColor={COLOR_FROM_POWER_COMMAND[powerCommandAction].shadowColor}
-          shadowRadius={8}
-        >
-          <Icon size={28} shadowRadius={8} shadowColor='$white1' />
-        </Switch.Thumb>
-      </Switch> */}
       <CircularButton
         onPress={handleCommand}
         onPressIn={isDisabled ? undefined : handlePressIn}

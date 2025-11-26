@@ -18,6 +18,7 @@ import { Logger } from '../utils/logger';
 import { requestBLEPermissions } from '../utils/permissions';
 import { useSettingsStore } from './settings.store';
 import { transformLighthouse } from 'transformers/lighthouse.transformers';
+import { Platform } from 'react-native';
 
 const logger = new Logger('LighthouseStore');
 
@@ -207,6 +208,7 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
                     firmwareRevision: device.firmwareRevision,
                     modelNumber: device.modelNumber,
                     manufacturerName: device.manufacturerName,
+                    serialNumber: device.serialNumber,
                   }
                 ),
               },
@@ -220,6 +222,15 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
 
         startScan: () => {
           logger.debug('Starting scan');
+
+          if (Platform.OS === 'android') {
+            const granted = requestBLEPermissions();
+            if (!granted) {
+              logger.error('BLE permissions not granted');
+              return;
+            }
+          }
+
           const {
             lighthouseService,
             mockLighthouseService,

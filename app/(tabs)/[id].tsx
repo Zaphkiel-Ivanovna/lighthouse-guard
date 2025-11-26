@@ -27,7 +27,7 @@ import {
   YGroup,
   YStack,
   ScrollView,
-  Button,
+  Stack,
 } from 'tamagui';
 import { LighthouseIdentifyButton } from '@/components/Lighthouse/IdentifyButton';
 import { getSignalInfo, getSignalStrengthLabel } from '@/utils/signal';
@@ -126,20 +126,19 @@ export default function LighthouseDetailScreen() {
     <ScrollView>
       <YStack flex={1} gap='$6' p='$4'>
         <YStack gap='$4' width='100%' items='center'>
-          <Circle
-            size='$11'
-            borderColor={
-              COLOR_FROM_LIGHTHOUSE_STATE[device.state].backgroundColor
-            }
+          <XStack
+            width='$11'
+            height='$11'
+            items='center'
+            justify='center'
             shadowColor={COLOR_FROM_LIGHTHOUSE_STATE[device.state].logoColor}
             shadowRadius={24}
-            shadowOpacity={1}
           >
             <Icon
               size='$10'
               color={COLOR_FROM_LIGHTHOUSE_STATE[device.state].logoColor}
             />
-          </Circle>
+          </XStack>
           <Text fontSize='$8' fontWeight='700'>
             {deviceCustomName || device.name}
           </Text>
@@ -206,6 +205,9 @@ export default function LighthouseDetailScreen() {
           </YGroup.Item>
           <YGroup.Item>
             <ListItem title='Manufacturer' subTitle={device.manufacturerName} />
+          </YGroup.Item>
+          <YGroup.Item>
+            <ListItem title='Serial Number' subTitle={device.serialNumber} />
           </YGroup.Item>
           <YGroup.Item>
             <ListItem

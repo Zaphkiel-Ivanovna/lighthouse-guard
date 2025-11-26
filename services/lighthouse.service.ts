@@ -13,6 +13,7 @@ import {
   LIGHTHOUSE_MANUFACTURER_NAME,
   LIGHTHOUSE_MODEL_NUMBER,
   LIGHTHOUSE_POWER_BYTE_TO_STATE,
+  LIGHTHOUSE_SERIAL_NUMBER,
   LIGHTHOUSE_V2_CONTROL_SERVICE,
   LIGHTHOUSE_V2_IDENTIFY_CHARACTERISTIC,
   LIGHTHOUSE_V2_POWER_CHARACTERISTIC,
@@ -96,55 +97,21 @@ export class LighthouseService {
 
   async getLighthouseMetadata(device: Device): Promise<LighthouseMetadata> {
     try {
-      const isConnected = await device.isConnected();
-      if (!isConnected) {
-        await device.connect({ timeout: 10000 });
-        await device.discoverAllServicesAndCharacteristics();
-      }
+      await ensureDeviceConnected(device);
 
-      const firmwareRevisionCharacteristic =
-        await device.readCharacteristicForService(
-          LIGHTHOUSE_DEVICE_INFO_SERVICE,
-          LIGHTHOUSE_FIRMWARE_REVISION
-        );
-
-      const modelNumberCharacteristic =
-        await device.readCharacteristicForService(
-          LIGHTHOUSE_DEVICE_INFO_SERVICE,
-          LIGHTHOUSE_MODEL_NUMBER
-        );
-
-      const manufacturerNameCharacteristic =
-        await device.readCharacteristicForService(
-          LIGHTHOUSE_DEVICE_INFO_SERVICE,
-          LIGHTHOUSE_MANUFACTURER_NAME
-        );
-
-      const serialNumberCharacteristic =
-        await device.readCharacteristicForService(
-          LIGHTHOUSE_DEVICE_INFO_SERVICE,
-          LIGHTHOUSE_MODEL_NUMBER
-        );
+      const [firmwareRevision, modelNumber, manufacturerName, serialNumber] =
+        await Promise.all([
+          this.readCharacteristic(device, LIGHTHOUSE_FIRMWARE_REVISION),
+          this.readCharacteristic(device, LIGHTHOUSE_MODEL_NUMBER),
+          this.readCharacteristic(device, LIGHTHOUSE_MANUFACTURER_NAME),
+          this.readCharacteristic(device, LIGHTHOUSE_SERIAL_NUMBER),
+        ]);
 
       return {
-        firmwareRevision: Buffer.from(
-          firmwareRevisionCharacteristic.value || '',
-          'base64'
-        )
-          .toString('utf-8')
-          .replace(/\s/g, '')
-          .trim(),
-        modelNumber: Buffer.from(
-          modelNumberCharacteristic.value || '',
-          'base64'
-        )
-          .toString('utf-8')
-          .replace(/\s/g, '')
-          .trim(),
-        manufacturerName: Buffer.from(
-          manufacturerNameCharacteristic.value || '',
-          'base64'
-        ).toString('utf-8'),
+        firmwareRevision: firmwareRevision.replace(/\s/g, ' ').trim(),
+        modelNumber: modelNumber.replace(/\s/g, '').trim(),
+        manufacturerName: manufacturerName.trim(),
+        serialNumber: serialNumber.trim(),
       };
     } catch (error) {
       logger.error('Error reading metadata:', error);
@@ -152,8 +119,17 @@ export class LighthouseService {
         firmwareRevision: '',
         modelNumber: '',
         manufacturerName: '',
+        serialNumber: '',
       };
     }
+  }
+
+  async readCharacteristic(device: Device, characteristicUUID: string) {
+    const characteristic = await device.readCharacteristicForService(
+      LIGHTHOUSE_DEVICE_INFO_SERVICE,
+      characteristicUUID
+    );
+    return Buffer.from(characteristic.value || '', 'base64').toString('utf-8');
   }
 
   async getDeviceStatus(device: Device): Promise<LighthouseState> {

@@ -1,4 +1,3 @@
-import { useColorScheme } from 'react-native';
 import { TamaguiProvider, type TamaguiProviderProps } from 'tamagui';
 import { ToastProvider, ToastViewport } from '@tamagui/toast';
 import { CurrentToast } from './CurrentToast';

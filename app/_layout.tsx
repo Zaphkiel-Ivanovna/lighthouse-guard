@@ -1,20 +1,14 @@
 import '../tamagui-web.css';
 
 import { useEffect } from 'react';
-import { Appearance, useColorScheme } from 'react-native';
+import { Appearance } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from '@react-navigation/native';
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { SplashScreen, Stack } from 'expo-router';
 import { Provider } from 'components/Provider';
-import { useTheme } from 'tamagui';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
-import { GradientBackground } from '@/components/GradientBackground';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -53,49 +47,42 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
 };
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-  const theme = useTheme();
-
   return (
     <GestureHandlerRootView style={styles.root}>
-      <GradientBackground>
-        <ThemeProvider
-          value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+      <ThemeProvider value={DarkTheme}>
+        <StatusBar style='light' />
+        <Stack
+          screenOptions={{
+            contentStyle: {
+              backgroundColor: '#000000',
+            },
+          }}
         >
-          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-          <Stack
-            screenOptions={{
+          <Stack.Screen
+            name='(tabs)'
+            options={{
+              headerShown: false,
+              contentStyle: {
+                backgroundColor: '#000000',
+              },
+            }}
+          />
+
+          <Stack.Screen
+            name='modal'
+            options={{
+              title: 'Tamagui + Expo',
+              presentation: 'modal',
+              animation: 'slide_from_right',
+              gestureEnabled: true,
+              gestureDirection: 'horizontal',
               contentStyle: {
                 backgroundColor: 'transparent',
               },
             }}
-          >
-            <Stack.Screen
-              name='(tabs)'
-              options={{
-                headerShown: false,
-                contentStyle: {
-                  backgroundColor: 'transparent',
-                },
-              }}
-            />
-
-            <Stack.Screen
-              name='modal'
-              options={{
-                title: 'Tamagui + Expo',
-                presentation: 'modal',
-                animation: 'slide_from_right',
-                gestureEnabled: true,
-                gestureDirection: 'horizontal',
-                contentStyle: {
-                  backgroundColor: 'transparent',
-                },
-              }}
-            />
-          </Stack>
-        </ThemeProvider>
-      </GradientBackground>
+          />
+        </Stack>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

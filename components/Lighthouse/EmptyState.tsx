@@ -4,14 +4,18 @@ import { useCallback, type FC } from 'react';
 import { Button, H4, Paragraph, Spinner, YStack, Text } from 'tamagui';
 import { StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'tamagui/linear-gradient';
+import { requestBLEPermissions } from '@/utils/permissions';
 
 export const LighthouseEmptyState: FC = () => {
   const startScan = useLighthouseStore((state) => state.startScan);
+  const requestPermissions = useLighthouseStore(
+    (state) => state.requestPermissions
+  );
   const isScanning = useLighthouseStore((state) => state.isScanning);
 
   const handleScan = useCallback(() => {
     startScan();
-  }, [startScan]);
+  }, [startScan, requestPermissions]);
 
   return (
     <YStack flex={1} items='center' justify='center' gap='$6' px='$6'>

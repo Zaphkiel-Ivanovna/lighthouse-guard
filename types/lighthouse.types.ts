@@ -36,4 +36,5 @@ export type LighthouseMetadata = {
   readonly firmwareRevision: string;
   readonly modelNumber: string;
   readonly manufacturerName: string;
+  readonly serialNumber: string;
 };
