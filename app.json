@@ -24,7 +24,15 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.zaphkielivanovna.lighthouseguard"
+      "package": "com.zaphkielivanovna.lighthouseguard",
+      "permissions": [
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.BLUETOOTH",
+        "android.permission.BLUETOOTH_ADMIN",
+        "android.permission.BLUETOOTH_CONNECT"
+      ]
     },
     "plugins": [
       "expo-router",
@@ -43,6 +51,17 @@
           "modes": ["peripheral", "central"],
           "bluetoothAlwaysPermission": "Allow $(PRODUCT_NAME) to connect to bluetooth devices"
         }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.zaphkiel.dev/",
+          "project": "lighthouse-guard",
+          "organization": "zaphkiel",
+          "experimental_android": {
+            "enableAndroidGradlePlugin": true
+          }
+        }
       ]
     ],
     "experiments": {
@@ -54,6 +73,12 @@
       "eas": {
         "projectId": "d877401b-24c6-457e-8776-dc192fc80db7"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/d877401b-24c6-457e-8776-dc192fc80db7"
     }
   }
 }

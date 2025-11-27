@@ -1,30 +1,14 @@
 import { useRouter } from 'expo-router';
 import { useMemo, type FC } from 'react';
 import { useLighthouseStore } from '../../stores/lighthouse.store';
-import {
-  LighthouseDevice,
-  LighthousePowerCommand,
-  LighthouseState,
-} from '../../types/lighthouse.types';
+import { LighthouseDevice } from '../../types/lighthouse.types';
 
 import { LighthousePowerButton } from './PowerButton';
 import { LighthouseStatusChip } from './StatusChip';
-import { Card, ColorTokens, YStack, XStack, Text, Switch } from 'tamagui';
+import { Card, YStack, XStack, Text } from 'tamagui';
 
 import { getSignalInfo } from '@/utils/signal';
 import { SignalChip } from './SignalChip';
-import { COLOR_FROM_LIGHTHOUSE_STATE } from '@/utils/constants';
-import { Moon } from '@tamagui/lucide-icons';
-
-const CHIP_COLOR_FROM_STATE: Record<LighthouseState, ColorTokens> = {
-  [LighthouseState.ON]: '$green4',
-  [LighthouseState.OFF]: '$red4',
-  [LighthouseState.STANDBY]: '$yellow4',
-  [LighthouseState.SLEEP]: '$blue4',
-  [LighthouseState.BOOTING]: '$yellow4',
-  [LighthouseState.UNKNOWN]: '$black4',
-  [LighthouseState.ERROR]: '$red4',
-};
 
 interface Props {
   readonly index: number;

@@ -1,41 +1,16 @@
 import { CircularButton } from '@/components/CircularButton';
 import { useLighthouseStore } from '@/stores/lighthouse.store';
-import { useRenameDialogStore } from '@/stores/rename-dialog.store';
-import {
-  LighthousePowerCommand,
-  LighthouseState,
-} from '@/types/lighthouse.types';
-import {
-  ArrowLeft,
-  Lightbulb,
-  PenSquare,
-  ScanSearch,
-  Sparkle,
-  Sparkles,
-  Star,
-  Wifi,
-} from '@tamagui/lucide-icons';
+import { LighthousePowerCommand } from '@/types/lighthouse.types';
+import { ArrowLeft, Star } from '@tamagui/lucide-icons';
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useEffect, useMemo } from 'react';
-import {
-  Card,
-  Circle,
-  ListItem,
-  Separator,
-  Text,
-  XStack,
-  YGroup,
-  YStack,
-  ScrollView,
-  Stack,
-} from 'tamagui';
-import { LighthouseIdentifyButton } from '@/components/Lighthouse/IdentifyButton';
-import { getSignalInfo, getSignalStrengthLabel } from '@/utils/signal';
+import { Text, XStack, YStack, ScrollView } from 'tamagui';
 import { LighthousePowerButton } from '@/components/Lighthouse/PowerButton';
 import { COLOR_FROM_LIGHTHOUSE_STATE } from '@/utils/constants';
 import { LighthouseStatusChip } from '@/components/Lighthouse/StatusChip';
 import { ICON_FROM_STATE } from '@/utils/constants';
-import { ZoomIn } from 'react-native-reanimated';
+import { LighthouseDetailsView } from '@/components/Lighthouse/DetailsView';
+import { LighthouseCapabilitiesErrorButton } from '@/components/Lighthouse/CapabilitiesErrorView';
 
 export default function LighthouseDetailScreen() {
   const router = useRouter();
@@ -47,43 +22,15 @@ export default function LighthouseDetailScreen() {
     (state) => state.customDeviceNames[id]
   );
 
-  const deviceStrength = useMemo(() => {
-    if (!device) {
-      return null;
-    }
-
-    return getSignalInfo(device.rssi);
-  }, [device?.rssi]);
-
-  const setCustomDeviceName = useLighthouseStore(
-    (state) => state.setCustomDeviceName
-  );
-  const clearCustomDeviceName = useLighthouseStore(
-    (state) => state.clearCustomDeviceName
-  );
   const commandState = useLighthouseStore((state) => state.commandStates[id]);
-  const openRenameDialog = useRenameDialogStore((state) => state.openDialog);
   const customDeviceNames = useLighthouseStore(
     (state) => state.customDeviceNames
   );
 
-  console.log('device', device);
-
   const canControl = useMemo(
-    () => device?.state !== LighthouseState.UNKNOWN || commandState?.isLoading,
+    () => !commandState?.isLoading,
     [device?.state, commandState?.isLoading]
   );
-
-  const handleRename = () => {
-    console.log('handleRename');
-    if (device) {
-      openRenameDialog(device, 'displayName');
-    }
-  };
-
-  const handleRenameSubmit = (newName: string) => {
-    setCustomDeviceName(id, newName);
-  };
 
   const Icon = useMemo(() => {
     if (!device) {
@@ -172,54 +119,11 @@ export default function LighthouseDetailScreen() {
             />
           </XStack>
         </YStack>
-        <YGroup
-          separator={<Separator borderColor='$black5' />}
-          borderColor='$black5'
-          borderWidth='$1'
-        >
-          <YGroup.Item>
-            <ListItem
-              title='Name'
-              subTitle={deviceCustomName || device.name}
-              iconAfter={
-                <PenSquare onPress={handleRename} size={24} color='$black11' />
-              }
-            />
-          </YGroup.Item>
-          {deviceCustomName && (
-            <YGroup.Item>
-              <ListItem title='Original Name' subTitle={device.name} />
-            </YGroup.Item>
-          )}
-          <YGroup.Item>
-            <ListItem title='ID' subTitle={device.id} />
-          </YGroup.Item>
-          <YGroup.Item>
-            <ListItem title='Signal' subTitle={deviceStrength?.label} />
-          </YGroup.Item>
-          <YGroup.Item>
-            <ListItem title='Model Number' subTitle={device.modelNumber} />
-          </YGroup.Item>
-          <YGroup.Item>
-            <ListItem title='Firmware' subTitle={device.firmwareRevision} />
-          </YGroup.Item>
-          <YGroup.Item>
-            <ListItem title='Manufacturer' subTitle={device.manufacturerName} />
-          </YGroup.Item>
-          <YGroup.Item>
-            <ListItem title='Serial Number' subTitle={device.serialNumber} />
-          </YGroup.Item>
-          <YGroup.Item>
-            <ListItem
-              title='Spot my Lighthouse'
-              subTitle='Tap to make the LED blink'
-              iconAfter={<ScanSearch size={24} color='$black11' />}
-              onPress={() => {
-                console.log('Spot my Lighthouse');
-              }}
-            />
-          </YGroup.Item>
-        </YGroup>
+        <LighthouseCapabilitiesErrorButton
+          deviceId={id}
+          capabilities={device.capabilities}
+        />
+        <LighthouseDetailsView deviceId={id} />
       </YStack>
     </ScrollView>
   );

@@ -9,6 +9,26 @@ import { SplashScreen, Stack } from 'expo-router';
 import { Provider } from 'components/Provider';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet } from 'react-native';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://f25b6917b223f813cd607007d4f2c1c2@sentry.zaphkiel.dev/11',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // Configure Session Replay
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1,
+  integrations: [Sentry.mobileReplayIntegration()],
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -19,7 +39,7 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 Appearance.setColorScheme('dark');
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   const [interLoaded, interError] = useFonts({
     Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
     InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
@@ -40,7 +60,7 @@ export default function RootLayout() {
       <RootLayoutNav />
     </Providers>
   );
-}
+});
 
 const Providers = ({ children }: { children: React.ReactNode }) => {
   return <Provider>{children}</Provider>;

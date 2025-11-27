@@ -1,6 +1,7 @@
 import { Buffer } from 'buffer';
 import { Device } from 'react-native-ble-plx';
 import {
+  LighthouseCharacteristicCapabilities,
   LighthouseMetadata,
   LighthousePowerCommand,
   LighthouseState,
@@ -231,6 +232,27 @@ export class MockLighthouseService {
       firmwareRevision: '1.0.0',
       modelNumber: 'LHB-0001',
       manufacturerName: 'Mock Manufacturer',
+      serialNumber: 'MOCK-SN-001',
+    };
+  }
+
+  /**
+   * Mock capabilities - all features enabled for testing
+   */
+  async detectAllCapabilities(
+    _device: Device
+  ): Promise<LighthouseCharacteristicCapabilities> {
+    await wait(50); // Simulate detection delay
+
+    // Return full capabilities for mock devices
+    return {
+      power: { canRead: true, canWrite: true, canNotify: true },
+      identify: { canRead: false, canWrite: true, canNotify: false },
+      channel: { canRead: true, canWrite: true, canNotify: false },
+      firmwareRevision: { canRead: true, canWrite: false, canNotify: false },
+      modelNumber: { canRead: true, canWrite: false, canNotify: false },
+      manufacturerName: { canRead: true, canWrite: false, canNotify: false },
+      serialNumber: { canRead: true, canWrite: false, canNotify: false },
     };
   }
 
@@ -238,13 +260,16 @@ export class MockLighthouseService {
     return this.getLighthouseStatus(device);
   }
 
-  async processDevice(
-    device: Device
-  ): Promise<{ state: LighthouseState; metadata: LighthouseMetadata }> {
+  async processDevice(device: Device): Promise<{
+    state: LighthouseState;
+    metadata: LighthouseMetadata;
+    capabilities: LighthouseCharacteristicCapabilities;
+  }> {
     try {
+      const capabilities = await this.detectAllCapabilities(device);
       const state = await this.getLighthouseStatus(device);
       const metadata = await this.getLighthouseMetadata(device);
-      return { state, metadata };
+      return { state, metadata, capabilities };
     } catch (error) {
       logger.error('Failed to get lighthouse status:', error);
       throw error;
@@ -271,7 +296,8 @@ export class MockLighthouseService {
 
   async sendPowerCommand(
     deviceId: string,
-    command: LighthousePowerCommand
+    command: LighthousePowerCommand,
+    _capabilities?: LighthouseCharacteristicCapabilities
   ): Promise<LighthouseState> {
     try {
       const mockDevice = this.mockDevices.get(deviceId);
@@ -302,7 +328,10 @@ export class MockLighthouseService {
     }
   }
 
-  async identifyDevice(deviceId: string): Promise<void> {
+  async identifyDevice(
+    deviceId: string,
+    _capabilities?: LighthouseCharacteristicCapabilities
+  ): Promise<void> {
     try {
       const mockDevice = this.mockDevices.get(deviceId);
       if (!mockDevice) {
@@ -334,7 +363,8 @@ export class MockLighthouseService {
 
   async pollDeviceStatus(
     deviceId: string,
-    targetState?: LighthouseState
+    targetState?: LighthouseState,
+    _capabilities?: LighthouseCharacteristicCapabilities
   ): Promise<LighthouseState> {
     try {
       const mockDevice = this.mockDevices.get(deviceId);

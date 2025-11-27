@@ -1,5 +1,27 @@
 import { Device } from 'react-native-ble-plx';
 
+/**
+ * BLE Characteristic capabilities
+ */
+export interface CharacteristicCapabilities {
+  canRead: boolean;
+  canWrite: boolean;
+  canNotify: boolean;
+}
+
+/**
+ * Capabilities for all Lighthouse characteristics
+ */
+export interface LighthouseCharacteristicCapabilities {
+  power: CharacteristicCapabilities;
+  identify: CharacteristicCapabilities;
+  channel: CharacteristicCapabilities;
+  firmwareRevision: CharacteristicCapabilities;
+  modelNumber: CharacteristicCapabilities;
+  manufacturerName: CharacteristicCapabilities;
+  serialNumber: CharacteristicCapabilities;
+}
+
 export enum LighthousePowerCommand {
   ON = 0x01,
   SLEEP = 0x00,
@@ -30,6 +52,7 @@ export type LighthouseDevice = Device &
   LighthouseMetadata & {
     readonly state: LighthouseState;
     readonly canControl: boolean;
+    readonly capabilities?: LighthouseCharacteristicCapabilities;
   };
 
 export type LighthouseMetadata = {
@@ -37,4 +60,16 @@ export type LighthouseMetadata = {
   readonly modelNumber: string;
   readonly manufacturerName: string;
   readonly serialNumber: string;
+};
+
+export enum LighthouseCapabilitiesAccess {
+  READ = 'read',
+  WRITE = 'write',
+  NOTIFY = 'notify',
+}
+
+export type LighthouseCapabilityError = {
+  characteristic: string;
+  missingCapabilities: LighthouseCapabilitiesAccess[];
+  severity: 'critical' | 'warning';
 };

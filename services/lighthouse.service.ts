@@ -1,6 +1,8 @@
 import { Buffer } from 'buffer';
 import { BleManager, Device } from 'react-native-ble-plx';
 import {
+  CharacteristicCapabilities,
+  LighthouseCharacteristicCapabilities,
   LighthouseDevice,
   LighthouseMetadata,
   LighthousePowerCommand,
@@ -14,6 +16,7 @@ import {
   LIGHTHOUSE_MODEL_NUMBER,
   LIGHTHOUSE_POWER_BYTE_TO_STATE,
   LIGHTHOUSE_SERIAL_NUMBER,
+  LIGHTHOUSE_V2_CHANNEL_CHARACTERISTIC,
   LIGHTHOUSE_V2_CONTROL_SERVICE,
   LIGHTHOUSE_V2_IDENTIFY_CHARACTERISTIC,
   LIGHTHOUSE_V2_POWER_CHARACTERISTIC,
@@ -50,6 +53,146 @@ export class LighthouseService {
     return device.name?.includes('LHB');
   }
 
+  /**
+   * Detect capabilities for a specific characteristic
+   */
+  private async detectCharacteristicCapabilities(
+    device: Device,
+    serviceUUID: string,
+    characteristicUUID: string
+  ): Promise<CharacteristicCapabilities> {
+    try {
+      const characteristics = await device.characteristicsForService(
+        serviceUUID
+      );
+      const characteristic = characteristics.find(
+        (c) => c.uuid.toLowerCase() === characteristicUUID.toLowerCase()
+      );
+
+      if (!characteristic) {
+        logger.warn(
+          `[${device.localName}]`,
+          `Characteristic ${characteristicUUID} not found`
+        );
+        return { canRead: false, canWrite: false, canNotify: false };
+      }
+
+      const capabilities = {
+        canRead: characteristic.isReadable,
+        canWrite:
+          characteristic.isWritableWithResponse ||
+          characteristic.isWritableWithoutResponse,
+        canNotify: characteristic.isNotifiable,
+      };
+
+      logger.debug(
+        `[${device.localName}]`,
+        `Characteristic ${characteristicUUID} capabilities:`,
+        capabilities
+      );
+
+      return capabilities;
+    } catch (error) {
+      logger.error(
+        `Error detecting capabilities for ${characteristicUUID}:`,
+        error
+      );
+      return { canRead: false, canWrite: false, canNotify: false };
+    }
+  }
+
+  /**
+   * Detect all characteristic capabilities for a Lighthouse device
+   */
+  async detectAllCapabilities(
+    device: Device
+  ): Promise<LighthouseCharacteristicCapabilities> {
+    try {
+      await ensureDeviceConnected(device);
+
+      logger.debug(
+        `[${device.localName}]`,
+        'Detecting characteristic capabilities...'
+      );
+
+      const [
+        power,
+        identify,
+        channel,
+        firmwareRevision,
+        modelNumber,
+        manufacturerName,
+        serialNumber,
+      ] = await Promise.all([
+        this.detectCharacteristicCapabilities(
+          device,
+          LIGHTHOUSE_V2_CONTROL_SERVICE,
+          LIGHTHOUSE_V2_POWER_CHARACTERISTIC
+        ),
+        this.detectCharacteristicCapabilities(
+          device,
+          LIGHTHOUSE_V2_CONTROL_SERVICE,
+          LIGHTHOUSE_V2_IDENTIFY_CHARACTERISTIC
+        ),
+        this.detectCharacteristicCapabilities(
+          device,
+          LIGHTHOUSE_V2_CONTROL_SERVICE,
+          LIGHTHOUSE_V2_CHANNEL_CHARACTERISTIC
+        ),
+        this.detectCharacteristicCapabilities(
+          device,
+          LIGHTHOUSE_DEVICE_INFO_SERVICE,
+          LIGHTHOUSE_FIRMWARE_REVISION
+        ),
+        this.detectCharacteristicCapabilities(
+          device,
+          LIGHTHOUSE_DEVICE_INFO_SERVICE,
+          LIGHTHOUSE_MODEL_NUMBER
+        ),
+        this.detectCharacteristicCapabilities(
+          device,
+          LIGHTHOUSE_DEVICE_INFO_SERVICE,
+          LIGHTHOUSE_MANUFACTURER_NAME
+        ),
+        this.detectCharacteristicCapabilities(
+          device,
+          LIGHTHOUSE_DEVICE_INFO_SERVICE,
+          LIGHTHOUSE_SERIAL_NUMBER
+        ),
+      ]);
+
+      const capabilities = {
+        power,
+        identify,
+        channel,
+        firmwareRevision,
+        modelNumber,
+        manufacturerName,
+        serialNumber,
+      };
+
+      logger.info(
+        `[${device.localName}]`,
+        'Capabilities detected:',
+        capabilities
+      );
+
+      return capabilities;
+    } catch (error) {
+      logger.error('Error detecting all capabilities:', error);
+      // Return default capabilities (all disabled)
+      return {
+        power: { canRead: false, canWrite: false, canNotify: false },
+        identify: { canRead: false, canWrite: false, canNotify: false },
+        channel: { canRead: false, canWrite: false, canNotify: false },
+        firmwareRevision: { canRead: false, canWrite: false, canNotify: false },
+        modelNumber: { canRead: false, canWrite: false, canNotify: false },
+        manufacturerName: { canRead: false, canWrite: false, canNotify: false },
+        serialNumber: { canRead: false, canWrite: false, canNotify: false },
+      };
+    }
+  }
+
   mapCommandToTargetState(command: LighthousePowerCommand): LighthouseState {
     switch (command) {
       case LighthousePowerCommand.ON:
@@ -63,12 +206,20 @@ export class LighthouseService {
     }
   }
 
-  async getLighthouseStatus(device: Device): Promise<LighthouseState> {
+  async getLighthouseStatus(
+    device: Device,
+    capabilities?: LighthouseCharacteristicCapabilities
+  ): Promise<LighthouseState> {
     try {
-      const isConnected = await device.isConnected();
-      if (!isConnected) {
-        await device.connect({ timeout: 10000 });
-        await device.discoverAllServicesAndCharacteristics();
+      await ensureDeviceConnected(device);
+
+      // Pre-check: Verify read capability
+      if (capabilities && !capabilities.power.canRead) {
+        logger.warn(
+          `[${device.localName}]`,
+          'Cannot read power characteristic - read capability not available'
+        );
+        return LighthouseState.UNKNOWN;
       }
 
       const characteristic = await device.readCharacteristicForService(
@@ -81,7 +232,6 @@ export class LighthouseService {
       }
 
       const powerByte = Buffer.from(characteristic.value, 'base64')[0];
-
       if (powerByte === undefined) {
         throw new Error('Power byte is null');
       }
@@ -95,17 +245,36 @@ export class LighthouseService {
     }
   }
 
-  async getLighthouseMetadata(device: Device): Promise<LighthouseMetadata> {
+  async getLighthouseMetadata(
+    device: Device,
+    capabilities?: LighthouseCharacteristicCapabilities
+  ): Promise<LighthouseMetadata> {
     try {
       await ensureDeviceConnected(device);
 
-      const [firmwareRevision, modelNumber, manufacturerName, serialNumber] =
-        await Promise.all([
-          this.readCharacteristic(device, LIGHTHOUSE_FIRMWARE_REVISION),
-          this.readCharacteristic(device, LIGHTHOUSE_MODEL_NUMBER),
-          this.readCharacteristic(device, LIGHTHOUSE_MANUFACTURER_NAME),
-          this.readCharacteristic(device, LIGHTHOUSE_SERIAL_NUMBER),
-        ]);
+      const firmwareRevision = await this.readCharacteristic(
+        device,
+        LIGHTHOUSE_FIRMWARE_REVISION,
+        capabilities?.firmwareRevision
+      );
+
+      const modelNumber = await this.readCharacteristic(
+        device,
+        LIGHTHOUSE_MODEL_NUMBER,
+        capabilities?.modelNumber
+      );
+
+      const manufacturerName = await this.readCharacteristic(
+        device,
+        LIGHTHOUSE_MANUFACTURER_NAME,
+        capabilities?.manufacturerName
+      );
+
+      const serialNumber = await this.readCharacteristic(
+        device,
+        LIGHTHOUSE_SERIAL_NUMBER,
+        capabilities?.serialNumber
+      );
 
       return {
         firmwareRevision: firmwareRevision.replace(/\s/g, ' ').trim(),
@@ -124,7 +293,20 @@ export class LighthouseService {
     }
   }
 
-  async readCharacteristic(device: Device, characteristicUUID: string) {
+  async readCharacteristic(
+    device: Device,
+    characteristicUUID: string,
+    capability?: CharacteristicCapabilities
+  ) {
+    // Pre-check: Verify read capability
+    if (capability && !capability.canRead) {
+      logger.warn(
+        `[${device.localName}]`,
+        `Cannot read characteristic ${characteristicUUID} - read capability not available`
+      );
+      return '';
+    }
+
     const characteristic = await device.readCharacteristicForService(
       LIGHTHOUSE_DEVICE_INFO_SERVICE,
       characteristicUUID
@@ -142,13 +324,20 @@ export class LighthouseService {
     }
   }
 
-  async processDevice(
-    device: Device
-  ): Promise<{ state: LighthouseState; metadata: LighthouseMetadata }> {
+  async processDevice(device: Device): Promise<{
+    state: LighthouseState;
+    metadata: LighthouseMetadata;
+    capabilities: LighthouseCharacteristicCapabilities;
+  }> {
     try {
-      const state = await this.getLighthouseStatus(device);
-      const metadata = await this.getLighthouseMetadata(device);
-      return { state, metadata };
+      // Detect capabilities first
+      const capabilities = await this.detectAllCapabilities(device);
+
+      // Use capabilities for subsequent operations
+      const state = await this.getLighthouseStatus(device, capabilities);
+      const metadata = await this.getLighthouseMetadata(device, capabilities);
+
+      return { state, metadata, capabilities };
     } catch (error) {
       logger.error('Failed to get lighthouse status:', error);
       throw error;
@@ -193,7 +382,8 @@ export class LighthouseService {
 
   async sendPowerCommand(
     deviceId: string,
-    command: LighthousePowerCommand
+    command: LighthousePowerCommand,
+    capabilities?: LighthouseCharacteristicCapabilities
   ): Promise<LighthouseState> {
     try {
       const device = await this.bleManager
@@ -201,6 +391,17 @@ export class LighthouseService {
         .then((d) => d[0]);
       if (!device) {
         throw new Error('Device not found');
+      }
+
+      // Pre-check: Verify write capability
+      if (capabilities && !capabilities.power.canWrite) {
+        logger.warn(
+          `[${device.localName}]`,
+          'Cannot write to power characteristic - write capability not available'
+        );
+        throw new Error(
+          'Write capability not available for power characteristic'
+        );
       }
 
       await ensureDeviceConnected(device);
@@ -212,7 +413,10 @@ export class LighthouseService {
 
       await wait(COMMAND_DELAY_MS);
 
-      logger.debug(`Power command sent to ${deviceId}: ${command}`);
+      logger.debug(
+        `[${device.localName}]`,
+        `Power command sent to ${deviceId}: ${command}`
+      );
 
       return this.mapCommandToTargetState(command);
     } catch (error) {
@@ -235,12 +439,26 @@ export class LighthouseService {
     }
   }
 
-  async identifyDevice(deviceId: string): Promise<void> {
+  async identifyDevice(
+    deviceId: string,
+    capabilities?: LighthouseCharacteristicCapabilities
+  ): Promise<void> {
     let device: Device | undefined;
     try {
       device = await this.bleManager.devices([deviceId]).then((d) => d[0]);
       if (!device) {
         throw new Error('Device not found');
+      }
+
+      // Pre-check: Verify write capability
+      if (capabilities && !capabilities.identify.canWrite) {
+        logger.warn(
+          `[${device.localName}]`,
+          'Cannot write to identify characteristic - write capability not available'
+        );
+        throw new Error(
+          'Write capability not available for identify characteristic'
+        );
       }
 
       await ensureDeviceConnected(device);
@@ -271,7 +489,8 @@ export class LighthouseService {
 
   async pollDeviceStatus(
     deviceId: string,
-    targetState?: LighthouseState
+    targetState?: LighthouseState,
+    capabilities?: LighthouseCharacteristicCapabilities
   ): Promise<LighthouseState> {
     try {
       const device = await this.bleManager
@@ -281,9 +500,10 @@ export class LighthouseService {
         throw new Error(`Device ${deviceId} not found during polling`);
       }
 
-      const newState = await this.getLighthouseStatus(device);
+      const newState = await this.getLighthouseStatus(device, capabilities);
 
       logger.debug(
+        `[${device.localName}]`,
         `Polling ${deviceId}: ${newState}${
           targetState ? ` → ${targetState}` : ''
         }`

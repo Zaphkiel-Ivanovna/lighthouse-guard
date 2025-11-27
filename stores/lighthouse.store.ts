@@ -9,6 +9,7 @@ import {
 import { MockLighthouseService } from '../services/mock-lighthouse.service';
 import {
   DeviceCommandStates,
+  LighthouseCharacteristicCapabilities,
   LighthouseDevice,
   LighthousePowerCommand,
   LighthouseState,
@@ -64,7 +65,8 @@ interface LighthouseStoreState {
   updateDeviceInfos: (
     deviceId: string,
     state: LighthouseState,
-    metadata?: LighthouseMetadata
+    metadata?: LighthouseMetadata,
+    capabilities?: LighthouseCharacteristicCapabilities
   ) => void;
   clearDevices: () => void;
   startScan: () => void;
@@ -180,8 +182,9 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
           processingDevices.add(device.id);
 
           try {
-            const { state, metadata } = await service.processDevice(device);
-            get().updateDeviceInfos(device.id, state, metadata);
+            const { state, metadata, capabilities } =
+              await service.processDevice(device);
+            get().updateDeviceInfos(device.id, state, metadata, capabilities);
           } catch (error) {
             logger.error('Failed to get lighthouse status:', error);
           } finally {
@@ -192,25 +195,33 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
         updateDeviceInfos: (
           deviceId: string,
           state: LighthouseState,
-          metadata?: LighthouseMetadata
+          metadata?: LighthouseMetadata,
+          capabilities?: LighthouseCharacteristicCapabilities
         ) => {
           set((currentState) => {
             const device = currentState.devices[deviceId];
             if (!device) return {};
 
+            const updatedDevice = transformLighthouse(
+              device,
+              state,
+              metadata ?? {
+                firmwareRevision: device.firmwareRevision,
+                modelNumber: device.modelNumber,
+                manufacturerName: device.manufacturerName,
+                serialNumber: device.serialNumber,
+              }
+            );
+
+            // Add capabilities if provided
+            if (capabilities) {
+              Object.assign(updatedDevice, { capabilities });
+            }
+
             return {
               devices: {
                 ...currentState.devices,
-                [deviceId]: transformLighthouse(
-                  device,
-                  state,
-                  metadata ?? {
-                    firmwareRevision: device.firmwareRevision,
-                    modelNumber: device.modelNumber,
-                    manufacturerName: device.manufacturerName,
-                    serialNumber: device.serialNumber,
-                  }
-                ),
+                [deviceId]: updatedDevice,
               },
             };
           });
@@ -300,9 +311,11 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
           setCommandLoading(deviceId, true);
 
           try {
+            const device = get().devices[deviceId];
             const targetState = await service.sendPowerCommand(
               deviceId,
-              command
+              command,
+              device?.capabilities
             );
             startPolling(deviceId, targetState);
           } catch (error) {
@@ -328,7 +341,8 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
           setCommandLoading(deviceId, true);
 
           try {
-            await service.identifyDevice(deviceId);
+            const device = get().devices[deviceId];
+            await service.identifyDevice(deviceId, device?.capabilities);
             setCommandLoading(deviceId, false);
           } catch (error) {
             const errorMessage =
@@ -368,11 +382,18 @@ export const useLighthouseStore = create<LighthouseStoreState>()(
             }
 
             try {
+              const device = get().devices[deviceId];
               const newState = await service.pollDeviceStatus(
                 deviceId,
-                targetState
+                targetState,
+                device?.capabilities
               );
-              updateDeviceInfos(deviceId, newState, undefined);
+              updateDeviceInfos(
+                deviceId,
+                newState,
+                undefined,
+                device?.capabilities
+              );
 
               if (targetState && newState === targetState) {
                 stopPolling(deviceId);

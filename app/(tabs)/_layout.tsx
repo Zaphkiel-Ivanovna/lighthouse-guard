@@ -61,6 +61,13 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen name='[id]' options={{ headerTitle: '', href: null }} />
+      <Tabs.Screen
+        name='[id]/errors'
+        options={{
+          headerTitle: '',
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

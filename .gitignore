@@ -48,3 +48,5 @@ ios
 android
 
 .yarn/
+
+.env.local
