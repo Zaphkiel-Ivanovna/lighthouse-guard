@@ -1,0 +1,19 @@
+appId: fr.zaphkiel.lighthouseguard
+name: Rename a simulated lighthouse from its detail screen
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/enable-mock-and-scan.yaml
+- tapOn:
+    id: lighthouse-card-MOCK-LHB-1A2B3C4D
+- assertVisible:
+    id: lighthouse-detail
+- tapOn:
+    id: rename-button
+- tapOn:
+    id: rename-input
+- eraseText: 40
+- inputText: 'Living room left'
+- tapOn:
+    id: rename-save
+- assertVisible: 'Living room left'

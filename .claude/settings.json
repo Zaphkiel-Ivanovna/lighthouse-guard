@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(yarn lint:*)",
+      "Bash(yarn format:*)",
+      "Bash(yarn typecheck:*)",
+      "Bash(yarn test:*)",
+      "Bash(yarn verify:*)",
+      "Bash(yarn prettier:*)",
+      "Bash(yarn doctor:*)",
+      "Bash(yarn install:*)",
+      "Bash(yarn add:*)",
+      "Bash(yarn remove:*)",
+      "Bash(yarn why:*)",
+      "Bash(yarn info:*)",
+      "Bash(yarn expo install:*)",
+      "Bash(yarn expo config:*)",
+      "Bash(yarn expo prebuild:*)",
+      "Bash(yarn jest:*)",
+      "Bash(yarn eslint:*)",
+      "Bash(yarn tsc:*)",
+      "Bash(maestro test:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(npm view:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "mcp__context7__query-docs"
+    ],
+    "ask": [
+      "Bash(git push:*)",
+      "Bash(git reset:*)",
+      "Bash(git clean:*)",
+      "Bash(eas build:*)",
+      "Bash(eas submit:*)",
+      "Bash(eas update:*)",
+      "Bash(yarn eas:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.local)",
+      "Read(./.env.*.local)",
+      "Edit(../lighthouse-guard-old/**)",
+      "Write(../lighthouse-guard-old/**)"
+    ]
+  },
+  "enabledPlugins": {
+    "expo@claude-plugins-official": true
+  },
+  "enabledMcpjsonServers": ["context7", "mobile", "github"],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-edit-guard.mjs\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-bash-guard.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-edit-quality.mjs\"",
+            "timeout": 90
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop-verify.mjs\"",
+            "timeout": 300
+          }
+        ]
+      }
+    ]
+  }
+}
