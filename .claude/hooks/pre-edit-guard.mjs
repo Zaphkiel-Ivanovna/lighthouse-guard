@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-// PreToolUse(Edit|Write|MultiEdit): blocks edits to generated/protected files
-// and source changes that break the architecture rules.
 import { checkSource, PROTECTED_PATHS } from './architecture-rules.mjs';
 import { block, readInput, toProjectPath } from './lib.mjs';
 

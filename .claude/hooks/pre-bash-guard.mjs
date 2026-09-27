@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// PreToolUse(Bash): the project uses yarn 4 exclusively.
 import { block, readInput } from './lib.mjs';
 
 const input = await readInput();

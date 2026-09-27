@@ -1,8 +1,3 @@
-// Architecture guard-rails checked before Claude writes a source file.
-// ESLint (eslint.config.js) enforces the same boundaries in CI; this gives
-// Claude immediate feedback instead of discovering it after the write.
-
-/** Files that must never be edited by hand. */
 export const PROTECTED_PATHS = [
   {
     test: (p) => /^(ios|android)\//.test(p),
@@ -23,7 +18,6 @@ export const PROTECTED_PATHS = [
 
 const LAYERS = ['app', 'features', 'shared', 'theme', 'core'];
 
-/** Which `@/<layer>` aliases each layer may NOT import. */
 const FORBIDDEN_LAYER_IMPORTS = {
   core: ['app', 'features', 'shared', 'theme'],
   theme: ['app', 'features', 'shared'],
@@ -42,7 +36,6 @@ function featureOf(projectPath) {
   return match ? match[1] : null;
 }
 
-/** Extracts module specifiers together with the named imports text. */
 function* importsOf(code) {
   const re =
     /(?:import|export)\s+(?:type\s+)?([\s\S]*?)\s+from\s+['"]([^'"]+)['"]|import\s+['"]([^'"]+)['"]|require\(\s*['"]([^'"]+)['"]\s*\)/g;
@@ -52,7 +45,6 @@ function* importsOf(code) {
   }
 }
 
-/** Returns a list of human-readable violations for the given file + new code. */
 export function checkSource(projectPath, code) {
   if (!/^src\/.*\.(ts|tsx)$/.test(projectPath)) return [];
   const violations = [];

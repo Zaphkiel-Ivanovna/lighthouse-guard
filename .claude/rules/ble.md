@@ -12,7 +12,7 @@ Layering inside `src/core/ble/`:
 transport/   BleTransport interface + NitroBleTransport (react-native-ble-nitro) + MockBleTransport
 protocol/    Pure LH v2 encoding and decoding: UUIDs, power bytes ↔ states, command bytes (100% unit-tested)
 queue.ts     Serial operation queue: one GATT operation at a time, per app
-lighthouse-client.ts   High-level API: scan, readPowerState, setPower, identify, waitForPowerState
+lighthouse-client.ts   High-level API: scan, readPowerState, setPower (write + poll), writePower (write only, for batches), identify
 permissions.ts         Android runtime permissions
 errors.ts              BleError normalisation (codes and user-facing i18n keys)
 ```
@@ -33,9 +33,10 @@ errors.ts              BleError normalisation (codes and user-facing i18n keys)
 - Advertised name prefix `LHB-`. Control service `00001523-1212-efde-1523-785feabcd124`.
 - Power characteristic `00001525-…`:
   - Write: `0x00` sleep, `0x01` on, `0x02` standby.
-  - Read: `0x00` sleep, `0x02` standby, `0x01`/`0x08`/`0x09` booting, `0x0b` on, others unknown.
+  - Read: `0x00` sleep, `0x02` standby, `0x08` booting, `0x01`/`0x09`/`0x0b` **on** (0x09 = woken from sleep, e.g. by SteamVR), others unknown. Never map 0x01/0x09 to booting: that is lighthouse_pm's known bug. Controls must never lock on `booting`.
 - Identify characteristic `00008421-…`: write `0x00` to blink the LED.
-- Channel characteristic `00001524-…` (read-only for now).
+- Channel characteristic `00001524-…`: read, 1 byte, channel 1–16 (writing it changes the RF channel; not exposed in the app).
+- Device Information Service `180A` (model, serial, firmware, hardware, manufacturer): optional ASCII strings, read with `readDetails` in one session. A missing field is `null`, never an error.
 - After a power write, poll the state about every 1 s until it reaches the target, or give up after 15 s.
 
 See `docs/ble-protocol.md` and the `lighthouse-protocol` skill for adding commands.

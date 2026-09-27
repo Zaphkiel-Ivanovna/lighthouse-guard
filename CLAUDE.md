@@ -27,7 +27,7 @@ src/app       routes only (thin re-exports of feature screens)
 src/features  vertical slices: lighthouses, settings, faq (screens, components, hooks, store, services, index.ts)
 src/shared    ui/ design system (Unistyles), navigation/, utils/
 src/theme     tokens, light/dark themes, breakpoints, Unistyles configure, theme preference
-src/core      ble/ (transport → protocol → queue → client), storage/ (MMKV), i18n/, logger/, utils/
+src/core      ble/ (transport → protocol → queue → client), app-icon/ (alternate icons), preferences/ (user settings), storage/ (MMKV), i18n/, logger/, utils/
 ```
 
 Dependencies flow `app → features → shared → theme → core`. The `pre-edit-guard` hook and ESLint both enforce this.
@@ -39,7 +39,7 @@ Dependencies flow `app → features → shared → theme → core`. The `pre-edi
 - Styling is Unistyles v3 only (`.claude/rules/unistyles.md`). UI strings go through i18n in **both** `en.ts` and `fr.ts` (`.claude/rules/i18n.md`).
 - BLE access goes through `@/core/ble` only. Every GATT session goes through the serial queue and always disconnects (`.claude/rules/ble.md`).
 - New behaviour ships with tests (`.claude/rules/testing.md`). BLE logic is tested against `MockBleTransport`.
-- Code, comments, identifiers and commits are in English. Talk to the user in French.
+- Code, identifiers and commits are in English. **No comments in code** (see `.claude/rules/architecture.md`). Talk to the user in French.
 - When unsure about an Expo, Unistyles or library API, check the docs (Expo MCP / plugin skills, context7, or the `react-native-unistyles-v3` skill) rather than relying on memory. SDK 58 is recent.
 
 ## Automations
@@ -59,6 +59,7 @@ Dependencies flow `app → features → shared → theme → core`. The `pre-edi
 - Unistyles reserves the variant key `default`; use another name (e.g. `primary`).
 - TypeScript 6 no longer auto-includes `@types/*`: global types are listed in `tsconfig.json` → `types`.
 - RNTL 14: `render`, `fireEvent` and `renderHook` are async, so `await` them.
+- Reanimated: use `.get()` / `.set()` on shared values (React Compiler). Jest mocks Reanimated and Worklets in `jest.setup.ts`, including a workaround for a 4.7 initializer bug. Motion conventions live in `.claude/rules/motion.md`.
 - Type style props as `ViewProps['style']` / `TextProps['style']`, not `StyleProp<ViewStyle>`: `expo-env.d.ts` pulls in react-native-web augmentations (`position: 'fixed'`) that clash with RN 0.88's strict View types.
 - `index.ts` is the entry (not `expo-router/entry`): it configures Unistyles, then i18n, then loads the router.
 - The iOS Bluetooth prompt is deferred to the first scan (`iOSLazyInit`). Android 12+ scans without location (`neverForLocation`).

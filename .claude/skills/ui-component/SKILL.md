@@ -70,6 +70,7 @@ const styles = StyleSheet.create((theme) => ({
 - [ ] Variants for visual states, with `styles.useVariants()` called first. The variant key **`default` is reserved** by Unistyles, so never use it as an option name.
 - [ ] Array style composition, never a spread.
 - [ ] Theme values in non-style props (`color`, `tintColor`, `trackColor`…) through `withUnistyles(Component, (theme) => ({ … }))`. `useUnistyles()` only in leaf components.
+- [ ] Interactive surfaces use `PressableScale`. Any motion uses the `@/theme` tokens and honours Reduce Motion (`.claude/rules/motion.md`).
 - [ ] Accessibility: role, label, state (`disabled`, `busy`, `selected`, `checked`), and a 44 pt minimum touch target.
 - [ ] `testID` prop forwarded.
 - [ ] Icons via `Icon` with `{ ios: SFSymbol, android: MaterialSymbol }`.

@@ -1,5 +1,3 @@
-// Shared helpers for Claude Code hooks. Hooks receive a JSON payload on stdin
-// and signal a blocking error with exit code 2 (stderr is fed back to Claude).
 import { Buffer } from 'node:buffer';
 import { existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
@@ -14,7 +12,6 @@ export async function readInput() {
   return raw ? JSON.parse(raw) : {};
 }
 
-/** Project-relative POSIX path, or null when the file is outside the project. */
 export function toProjectPath(filePath) {
   if (!filePath) return null;
   const rel = path.relative(PROJECT_DIR, path.resolve(PROJECT_DIR, filePath));
@@ -41,7 +38,6 @@ export function changedFilesPath(sessionId) {
   return path.join(ensureCacheDir(), `changed-${sessionId ?? 'default'}.txt`);
 }
 
-/** Keep the tail of long tool output so Claude gets the useful part. */
 export function tail(text, lines = 60) {
   const all = text.trim().split('\n');
   return all.length <= lines ? all.join('\n') : ['…', ...all.slice(-lines)].join('\n');

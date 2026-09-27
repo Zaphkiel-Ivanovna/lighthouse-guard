@@ -1,7 +1,4 @@
 #!/usr/bin/env node
-// Stop: when Claude changed TypeScript sources this session, run the type
-// checker and the Jest tests related to those files. Failures block the stop
-// so Claude fixes them. Gives up after MAX_ATTEMPTS consecutive blocks.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { block, changedFilesPath, ensureCacheDir, localBin, PROJECT_DIR, readInput, tail } from './lib.mjs';

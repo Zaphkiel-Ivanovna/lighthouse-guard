@@ -30,7 +30,18 @@ Unistyles 3 is a C++ (Nitro) styling engine plus a Babel plugin. Styles update o
 - Use `uniwind`, `nativewind`, `heroui-native`, `tailwind-*` or `clsx`. They are banned.
 - Mutate `theme` or `rt` inside a style function, or move style functions out of `StyleSheet.create`.
 - Spread Unistyles styles inside `useAnimatedStyle`. Pass the static style and the animated style as an array.
+- Put `backgroundImage` (gradients) in a theme-dependent style. Unistyles 3.3 drops it on theme switches. Use `GradientLayer` with the gradient string read from `useUnistyles()` during render.
+- Never leave coloured fills flat (accent, badges, toggles, tiles). Wrap them in `<GradientLayer image={subtleGradient(color)} />` (or `washGradient` for translucent tiles) inside an `overflow: 'hidden'` parent, so every coloured surface gets the same subtle depth. `SUBTLE_SHIFT` is AA-tested; do not raise it without re-running `src/theme/__tests__/accents.test.ts`.
 
 ## Theme shape
 
-`src/theme/themes.ts` defines `light` and `dark` with the same shape: `colors`, `space()`, `radius`, `typography`, `lighthouseState` (status colors for on, standby, sleep, booting, unknown). Adding a token means adding it to **both** themes; TypeScript enforces this through `satisfies AppTheme`.
+`src/theme/themes.ts` defines `light` and `dark` with the same shape:
+
+- `colors` (including `inverse` / `onInverse` for the dark round header button);
+- `lighthouseState` (graphics: LED, dots, fills) and `lighthouseStateText` (AA text on `surface`);
+- `gradients` (`sky` page wash, `hero` highlight card);
+- `hero` (content on the hero gradient);
+- `badge` (iOS Settings-style icon squares);
+- `space()`, `radius`, `typography`.
+
+Adding a token means adding it to **both** themes; TypeScript enforces this through `satisfies AppTheme`. Visual language: airy smart-home UI with a pastel sky gradient, white rounded cards (`radius.lg`, soft `shadow`), accessory icon tiles (`LighthouseIcon`), coloured status text, and pill buttons.

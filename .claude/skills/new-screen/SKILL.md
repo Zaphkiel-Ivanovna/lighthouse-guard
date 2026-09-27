@@ -29,7 +29,7 @@ export function FirmwareScreen() {
 }
 ```
 
-- Use `Screen` (ScrollView with automatic insets for large titles and native tabs) for content screens, or `FlashList` for long lists (see `LighthouseListScreen`).
+- A **tab root** uses `TabScreen` (title + optional `action` on one line, compact bar on scroll; the native header is hidden via `tabRootOptions`). A **pushed screen** uses `Screen` (automatic insets under the native, transparent header). Use `FlashList` only for long lists.
 - Titles and all copy come from i18n (`en.ts` + `fr.ts`).
 - Give the root and every interactive element a stable `testID`.
 
@@ -55,7 +55,7 @@ If the screen needs non-default presentation, declare it in the nearest `_layout
 <Stack.Screen name='lighthouse/[id]/firmware' options={{ presentation: 'formSheet', sheetAllowedDetents: [0.5] }} />
 ```
 
-Tab stacks share `largeTitleStackOptions` from `@/shared/navigation/stack-options`.
+Tab stacks use `tabStackOptions` from `@/shared/navigation/stack-options`, and their `index` route gets `tabRootOptions`.
 
 ## 5. Navigate with typed routes
 
