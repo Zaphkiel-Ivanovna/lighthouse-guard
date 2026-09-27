@@ -1,0 +1,152 @@
+{
+  "graphite": {
+    "background": {
+      "from": "#F8FAFC",
+      "to": "#D3DAE3"
+    },
+    "glyph": {
+      "from": "#64748B",
+      "to": "#0F172A"
+    },
+    "glyphDark": {
+      "from": "#F1F5F9",
+      "to": "#94A3B8"
+    },
+    "shadow": "rgba(15,23,42,0.30)"
+  },
+  "sky": {
+    "background": {
+      "from": "#F7FBFD",
+      "to": "#CBE6F1"
+    },
+    "glyph": {
+      "from": "#0E8DAE",
+      "to": "#1D4ED8"
+    },
+    "glyphDark": {
+      "from": "#56AFC6",
+      "to": "#466EDF"
+    },
+    "shadow": "rgba(14,80,120,0.32)"
+  },
+  "cyan": {
+    "background": {
+      "from": "#F4FCFE",
+      "to": "#C3EDF6"
+    },
+    "glyph": {
+      "from": "#22B8D8",
+      "to": "#0A6D86"
+    },
+    "glyphDark": {
+      "from": "#64CDE4",
+      "to": "#36879C"
+    },
+    "shadow": "rgba(8,90,110,0.32)"
+  },
+  "blue": {
+    "background": {
+      "from": "#F5F8FF",
+      "to": "#CEDCFB"
+    },
+    "glyph": {
+      "from": "#3B82F6",
+      "to": "#1D4ED8"
+    },
+    "glyphDark": {
+      "from": "#76A8F9",
+      "to": "#466EDF"
+    },
+    "shadow": "rgba(30,64,175,0.30)"
+  },
+  "indigo": {
+    "background": {
+      "from": "#F6F6FF",
+      "to": "#D8DAFB"
+    },
+    "glyph": {
+      "from": "#6366F1",
+      "to": "#3730A3"
+    },
+    "glyphDark": {
+      "from": "#9294F5",
+      "to": "#5B55B4"
+    },
+    "shadow": "rgba(55,48,163,0.30)"
+  },
+  "violet": {
+    "background": {
+      "from": "#FAF7FF",
+      "to": "#E5D8FB"
+    },
+    "glyph": {
+      "from": "#A855F7",
+      "to": "#6D28D9"
+    },
+    "glyphDark": {
+      "from": "#C288F9",
+      "to": "#874FE0"
+    },
+    "shadow": "rgba(91,33,182,0.28)"
+  },
+  "rose": {
+    "background": {
+      "from": "#FFF7FA",
+      "to": "#F8D5E5"
+    },
+    "glyph": {
+      "from": "#EC4899",
+      "to": "#BE185D"
+    },
+    "glyphDark": {
+      "from": "#F27FB8",
+      "to": "#CA427A"
+    },
+    "shadow": "rgba(157,23,77,0.26)"
+  },
+  "sunset": {
+    "background": {
+      "from": "#FFF9F3",
+      "to": "#FADDC4"
+    },
+    "glyph": {
+      "from": "#FB923C",
+      "to": "#C2410C"
+    },
+    "glyphDark": {
+      "from": "#FCB376",
+      "to": "#CD6338"
+    },
+    "shadow": "rgba(154,52,18,0.26)"
+  },
+  "mint": {
+    "background": {
+      "from": "#F4FDF8",
+      "to": "#CBEFDA"
+    },
+    "glyph": {
+      "from": "#22C55E",
+      "to": "#15803D"
+    },
+    "glyphDark": {
+      "from": "#64D68E",
+      "to": "#3F9760"
+    },
+    "shadow": "rgba(21,128,61,0.26)"
+  },
+  "aquaViolet": {
+    "background": {
+      "from": "#F7FBFD",
+      "to": "#E3DDFB"
+    },
+    "glyph": {
+      "from": "#06B6D4",
+      "to": "#7C3AED"
+    },
+    "glyphDark": {
+      "from": "#51CCE1",
+      "to": "#945DF0"
+    },
+    "shadow": "rgba(76,29,149,0.26)"
+  }
+}

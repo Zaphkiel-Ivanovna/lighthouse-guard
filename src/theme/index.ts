@@ -1,4 +1,16 @@
-// Never re-export `StyleSheet` from here: the Unistyles Babel plugin detects it by import source.
 export { breakpoints } from './breakpoints';
-export { setThemePreference, useThemePreference, type ThemePreference } from './theme-preference';
+export { ACCENT_NAMES, ACCENTS, DEFAULT_ACCENT, isAccentName, type AccentName } from './accents';
+export {
+  getAppearance,
+  isThemePreference,
+  setAccent,
+  setThemePreference,
+  THEME_PREFERENCES,
+  useAccent,
+  useThemePreference,
+  type ThemePreference,
+} from './theme-preference';
 export { darkTheme, lightTheme, type AppTheme } from './themes';
+export { mix, subtleGradient, washGradient, withAlpha } from './color';
+export { easing, spring, timing, transitions } from './motion';
+export { SPLASH } from './splash';

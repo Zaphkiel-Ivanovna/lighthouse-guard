@@ -6,17 +6,18 @@ import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
 
 type Props = {
-  readonly icon: IconName;
+  readonly icon?: IconName;
+  readonly visual?: ReactNode;
   readonly title: string;
   readonly body?: string;
   readonly children?: ReactNode;
   readonly testID?: string;
 };
 
-export function EmptyState({ icon, title, body, children, testID }: Props) {
+export function EmptyState({ icon, visual, title, body, children, testID }: Props) {
   return (
     <View testID={testID} style={styles.container}>
-      <Icon name={icon} size={44} tone='muted' />
+      {visual ?? (icon && <Icon name={icon} size={44} tone='muted' />)}
       <Text variant='headline' style={styles.centered}>
         {title}
       </Text>

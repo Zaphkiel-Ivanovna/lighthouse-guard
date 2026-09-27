@@ -1,13 +1,16 @@
 appId: fr.zaphkiel.lighthouseguard
 ---
-# Real Bluetooth is unavailable on simulators: switch to simulated lighthouses, then scan.
 - tapOn:
     text: 'Allow'
     optional: true
 - tapOn:
     id: tab-settings
 - tapOn:
+    id: settings-developer
+- tapOn:
     id: mock-mode-switch
+- tapOn:
+    id: BackButton
 - tapOn:
     id: tab-lighthouses
 - tapOn:

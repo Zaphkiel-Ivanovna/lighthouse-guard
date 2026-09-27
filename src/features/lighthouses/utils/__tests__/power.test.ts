@@ -9,7 +9,12 @@ describe('toggleCommandFor', () => {
     expect(toggleCommandFor(state)).toBe('on');
   });
 
-  it('is disabled while booting', () => {
-    expect(toggleCommandFor('booting')).toBeNull();
+  it('can put a booting lighthouse back to sleep instead of locking the control', () => {
+    expect(toggleCommandFor('booting')).toBe('sleep');
+  });
+
+  it('turns a running lighthouse off with the preferred mode', () => {
+    expect(toggleCommandFor('on', 'standby')).toBe('standby');
+    expect(toggleCommandFor('standby', 'standby')).toBe('on');
   });
 });

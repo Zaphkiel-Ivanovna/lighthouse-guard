@@ -1,12 +1,11 @@
 import type { PowerCommand, PowerState } from '@/core/ble';
+import type { OffMode } from '@/core/preferences';
 
-/** Command sent by the quick toggle on a lighthouse card; `null` while the state is transitional. */
-export function toggleCommandFor(state: PowerState): PowerCommand | null {
+export function toggleCommandFor(state: PowerState, offMode: OffMode = 'sleep'): PowerCommand {
   switch (state) {
     case 'on':
-      return 'sleep';
     case 'booting':
-      return null;
+      return offMode;
     case 'standby':
     case 'sleep':
     case 'unknown':

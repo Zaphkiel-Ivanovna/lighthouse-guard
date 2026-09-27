@@ -2,6 +2,8 @@ import { NativeTabs } from 'expo-router/native-tabs';
 import { useTranslation } from 'react-i18next';
 import { useUnistyles } from 'react-native-unistyles';
 
+import lighthouseTabIcon from '@/assets/images/tabs/lighthouse.png';
+
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { theme } = useUnistyles();
@@ -9,7 +11,7 @@ export default function TabsLayout() {
   return (
     <NativeTabs tintColor={theme.colors.accent}>
       <NativeTabs.Trigger name='(lighthouses)' testID='tab-lighthouses'>
-        <NativeTabs.Trigger.Icon sf='light.beacon.max.fill' md='cell_tower' />
+        <NativeTabs.Trigger.Icon src={lighthouseTabIcon} renderingMode='template' />
         <NativeTabs.Trigger.Label>{t('tabs.lighthouses')}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='settings' testID='tab-settings'>

@@ -4,10 +4,10 @@ import { Platform } from 'react-native';
 
 type StackScreenOptions = NonNullable<ComponentProps<typeof Stack>['screenOptions']>;
 
-/** Shared header for every tab stack: iOS large titles over a transparent (liquid glass) header. */
-export const largeTitleStackOptions = {
-  headerLargeTitle: true,
+export const tabStackOptions = {
   headerShadowVisible: false,
-  headerLargeTitleShadowVisible: false,
+  headerBackButtonDisplayMode: 'minimal',
   headerTransparent: Platform.OS === 'ios',
 } satisfies StackScreenOptions;
+
+export const tabRootOptions = { headerShown: false } satisfies StackScreenOptions;

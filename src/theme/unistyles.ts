@@ -1,26 +1,29 @@
-// Loaded from the app entry (index.ts) before expo-router, and from jest.setup.ts.
 import { StyleSheet } from 'react-native-unistyles';
 
+import { applyAccent } from './accents';
 import { breakpoints } from './breakpoints';
-import { useThemePreferenceStore } from './theme-preference';
-import { darkTheme, lightTheme } from './themes';
+import { applyNativeColorScheme, useThemePreferenceStore } from './theme-preference';
+import { darkTheme, lightTheme, type AppTheme } from './themes';
 
-const themes = { light: lightTheme, dark: darkTheme };
+const { preference, accent } = useThemePreferenceStore.getState();
+
+const themes: { light: AppTheme; dark: AppTheme } = {
+  light: applyAccent(lightTheme, 'light', accent),
+  dark: applyAccent(darkTheme, 'dark', accent),
+};
 
 type AppThemes = typeof themes;
 type AppBreakpoints = typeof breakpoints;
 
 declare module 'react-native-unistyles' {
-  /* eslint-disable @typescript-eslint/no-empty-object-type -- Unistyles module augmentation */
   export interface UnistylesThemes extends AppThemes {}
   export interface UnistylesBreakpoints extends AppBreakpoints {}
-  /* eslint-enable @typescript-eslint/no-empty-object-type */
 }
-
-const { preference } = useThemePreferenceStore.getState();
 
 StyleSheet.configure({
   themes,
   breakpoints,
   settings: preference === 'system' ? { adaptiveThemes: true } : { initialTheme: preference },
 });
+
+applyNativeColorScheme(preference);

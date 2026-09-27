@@ -1,9 +1,12 @@
-import { ActivityIndicator, Pressable } from 'react-native';
-import { StyleSheet, withUnistyles } from 'react-native-unistyles';
+import { ActivityIndicator } from 'react-native';
+import { StyleSheet, useUnistyles, withUnistyles } from 'react-native-unistyles';
 
 import { haptics } from '@/shared/utils/haptics';
+import { subtleGradient } from '@/theme';
 
+import { GradientLayer } from './GradientLayer';
 import { Icon, type IconName } from './Icon';
+import { PressableScale } from './PressableScale';
 import { Text, type TextTone } from './Text';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -16,8 +19,6 @@ type Props = {
   readonly icon?: IconName;
   readonly loading?: boolean;
   readonly disabled?: boolean;
-  /** Selected option in a group (e.g. a segmented choice). */
-  readonly selected?: boolean;
   readonly accessibilityLabel?: string;
   readonly accessibilityHint?: string;
   readonly testID?: string;
@@ -40,12 +41,13 @@ export function Button({
   icon,
   loading = false,
   disabled = false,
-  selected,
   accessibilityLabel,
   accessibilityHint,
   testID,
 }: Props) {
+  const { theme } = useUnistyles();
   const isDisabled = disabled || loading;
+  const fill = variant === 'primary' ? theme.colors.accent : variant === 'danger' ? theme.colors.danger : null;
   styles.useVariants({ variant, size, disabled: isDisabled });
   const tone = CONTENT_TONE[variant];
 
@@ -55,21 +57,22 @@ export function Button({
   };
 
   return (
-    <Pressable
+    <PressableScale
       testID={testID}
       onPress={handlePress}
       disabled={isDisabled}
       accessibilityRole='button'
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
-      accessibilityState={{ disabled: isDisabled, busy: loading, selected }}
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+      accessibilityState={{ disabled: isDisabled, busy: loading }}
+      style={styles.button}
     >
+      {fill && <GradientLayer image={subtleGradient(fill)} />}
       {loading ? <Spinner size='small' /> : icon && <Icon name={icon} size={18} tone={tone} />}
       <Text variant='callout' tone={tone}>
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -81,6 +84,7 @@ const styles = StyleSheet.create((theme) => ({
     gap: theme.space(2),
     borderRadius: theme.radius.md,
     borderCurve: 'continuous',
+    overflow: 'hidden',
     variants: {
       variant: {
         primary: { backgroundColor: theme.colors.accent },
@@ -90,16 +94,12 @@ const styles = StyleSheet.create((theme) => ({
       },
       size: {
         md: { minHeight: 44, paddingHorizontal: theme.space(4) },
-        lg: { minHeight: 52, paddingHorizontal: theme.space(5) },
+        lg: { minHeight: 52, paddingHorizontal: theme.space(6) },
       },
       disabled: {
         true: { opacity: 0.45 },
         false: {},
       },
     },
-  },
-  pressed: {
-    opacity: 0.75,
-    transform: [{ scale: 0.98 }],
   },
 }));

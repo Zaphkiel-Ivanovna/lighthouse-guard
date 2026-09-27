@@ -1,0 +1,41 @@
+appId: fr.zaphkiel.lighthouseguard
+name: Create a group, control it, then show it at launch
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/enable-mock-and-scan.yaml
+- tapOn:
+    id: group-switcher
+- tapOn:
+    id: group-new
+- tapOn:
+    id: group-name-input
+- inputText: 'Living room'
+- tapOn:
+    id: group-member-MOCK-LHB-1A2B3C4D
+- tapOn:
+    id: group-member-MOCK-LHB-5E6F7A8B
+- tapOn:
+    id: group-save
+- assertVisible: 'Living room'
+- assertVisible:
+    id: lighthouse-card-MOCK-LHB-1A2B3C4D
+- assertNotVisible:
+    id: lighthouse-card-MOCK-LHB-9C0D1E2F
+- tapOn:
+    id: fleet-on
+- extendedWaitUntil:
+    visible:
+      id: lighthouse-state-MOCK-LHB-5E6F7A8B-on
+    timeout: 20000
+- tapOn:
+    id: tab-settings
+- tapOn:
+    id: settings-groups
+- tapOn:
+    id: startup-group-0
+- launchApp:
+    stopApp: true
+- assertVisible: 'Living room'
+- assertNotVisible:
+    id: lighthouse-card-MOCK-LHB-9C0D1E2F

@@ -1,6 +1,18 @@
 import type { ExpoConfig } from 'expo/config';
 
+import { ALTERNATE_APP_ICONS, iconAssetFolder, nativeIconName } from './src/core/app-icon/app-icon-names.ts';
+import { SPLASH } from './src/theme/splash.ts';
+
 const BLUETOOTH_USAGE = 'Lighthouse Guard uses Bluetooth to find and control your SteamVR base stations.';
+
+const alternateAppIcons = ALTERNATE_APP_ICONS.map((name) => {
+  const folder = `./assets/images/app-icons/${iconAssetFolder(name)}`;
+  return {
+    name: nativeIconName(name),
+    ios: { light: `${folder}/ios-light.png`, dark: `${folder}/ios-dark.png`, tinted: `${folder}/ios-tinted.png` },
+    android: { foregroundImage: `${folder}/android-foreground.png`, backgroundColor: '#F8FAFC' },
+  };
+});
 
 const config: ExpoConfig = {
   name: 'Lighthouse Guard',
@@ -13,7 +25,13 @@ const config: ExpoConfig = {
   platforms: ['ios', 'android'],
   ios: {
     bundleIdentifier: 'fr.zaphkiel.lighthouseguard',
+    appleTeamId: '2APB3NHX44',
     supportsTablet: true,
+    icon: {
+      light: './assets/images/icon.png',
+      dark: './assets/images/icon-dark.png',
+      tinted: './assets/images/icon-tinted.png',
+    },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
@@ -21,7 +39,7 @@ const config: ExpoConfig = {
   android: {
     package: 'fr.zaphkiel.lighthouseguard',
     adaptiveIcon: {
-      backgroundColor: '#0B0E13',
+      backgroundColor: '#F8FAFC',
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
@@ -35,22 +53,19 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
-        image: './assets/images/splash-icon.png',
-        imageWidth: 160,
-        resizeMode: 'contain',
-        backgroundColor: '#F5F6F8',
-        dark: { backgroundColor: '#0B0E13' },
+        image: './assets/images/splash-blank.png',
+        imageWidth: SPLASH.logoSize,
+        backgroundColor: SPLASH.background.light,
+        dark: { backgroundColor: SPLASH.background.dark },
       },
     ],
+    ['expo-alternate-app-icons', alternateAppIcons],
     [
       'react-native-ble-nitro',
       {
-        // Foreground-only for now. Add `isBackgroundEnabled` + `modes: ['central']` for background automations.
         isBackgroundEnabled: false,
-        // Android 12+: scan without location permission (lighthouses are not used to derive location).
         neverForLocation: true,
         bluetoothAlwaysPermission: BLUETOOTH_USAGE,
-        // iOS: defer the Bluetooth permission prompt until the first scan instead of app launch.
         iOSLazyInit: true,
       },
     ],

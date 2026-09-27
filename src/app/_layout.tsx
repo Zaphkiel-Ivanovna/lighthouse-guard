@@ -1,14 +1,19 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { UnistylesRuntime, useUnistyles } from 'react-native-unistyles';
+
+import { AnimatedSplash } from '@/shared/ui';
+
+void SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({ fade: false });
 
 export default function RootLayout() {
   const { theme, rt } = useUnistyles();
   const isDark = rt.themeName === 'dark';
   const base = isDark ? DarkTheme : DefaultTheme;
 
-  // Navigation chrome (headers, tab bar, sheets) follows the Unistyles theme.
   const navigationTheme = {
     ...base,
     colors: {
@@ -29,6 +34,7 @@ export default function RootLayout() {
     <ThemeProvider value={navigationTheme}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false }} />
+      <AnimatedSplash />
     </ThemeProvider>
   );
 }

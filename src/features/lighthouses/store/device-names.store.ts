@@ -4,33 +4,41 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { mmkvStateStorage } from '@/core/storage';
 
 type DeviceNamesState = {
-  /** Custom names keyed by device id. */
   readonly names: Readonly<Record<string, string>>;
+  readonly factoryNames: Readonly<Record<string, string>>;
 };
 
 export const useDeviceNamesStore = create<DeviceNamesState>()(
-  persist(() => ({ names: {} as Record<string, string> }), {
+  persist((): DeviceNamesState => ({ names: {}, factoryNames: {} }), {
     name: 'lighthouse-names',
-    version: 1,
+    version: 2,
     storage: createJSONStorage(() => mmkvStateStorage),
+    migrate: (persisted) => ({
+      names: (persisted as Partial<DeviceNamesState> | undefined)?.names ?? {},
+      factoryNames: {},
+    }),
   }),
 );
 
 export const MIN_NAME_LENGTH = 2;
 
-export function renameLighthouse(id: string, name: string): void {
+export function renameLighthouse(id: string, name: string, factoryName?: string): void {
   const trimmed = name.trim();
   if (trimmed.length < MIN_NAME_LENGTH) return;
-  useDeviceNamesStore.setState((s) => ({ names: { ...s.names, [id]: trimmed } }));
+  useDeviceNamesStore.setState((s) => ({
+    names: { ...s.names, [id]: trimmed },
+    factoryNames: factoryName ? { ...s.factoryNames, [id]: factoryName } : s.factoryNames,
+  }));
 }
 
 export function resetLighthouseName(id: string): void {
   useDeviceNamesStore.setState((s) => {
-    const { [id]: _removed, ...names } = s.names;
-    return { names };
+    const { [id]: _name, ...names } = s.names;
+    const { [id]: _factoryName, ...factoryNames } = s.factoryNames;
+    return { names, factoryNames };
   });
 }
 
 export function clearLighthouseNames(): void {
-  useDeviceNamesStore.setState({ names: {} });
+  useDeviceNamesStore.setState({ names: {}, factoryNames: {} });
 }

@@ -1,47 +1,67 @@
-import { router } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
-import { Text } from '@/shared/ui';
-import { haptics } from '@/shared/utils/haptics';
+import { usePreference } from '@/core/preferences';
+import { Icon, PressableScale, Text } from '@/shared/ui';
+import { transitions } from '@/theme';
 
-import { useDisplayName } from '../hooks/useLighthouses';
+import { useLighthousePresentation } from '../hooks/useLighthousePresentation';
 import type { Lighthouse } from '../types';
+import { ChannelLabel } from './ChannelLabel';
+import { LighthouseIcon } from './LighthouseIcon';
 import { PowerToggle } from './PowerToggle';
-import { StatusChip } from './StatusChip';
+import { SignalStrength } from './SignalStrength';
+
+const CHEVRON = { ios: 'chevron.right', android: 'chevron_right' } as const;
 
 type Props = {
   readonly lighthouse: Lighthouse;
 };
 
 export function LighthouseCard({ lighthouse }: Props) {
-  const { t } = useTranslation();
-  const name = useDisplayName(lighthouse);
-
-  const openDetail = () => {
-    haptics.selection();
-    router.push({ pathname: '/lighthouse/[id]', params: { id: lighthouse.id } });
-  };
+  const { name, subtitle, stateLabel, stateTextColor, isConflicting, a11yLabel, openDetail } =
+    useLighthousePresentation(lighthouse);
+  const showChannel = usePreference('showChannelOnCards');
+  const showSignal = usePreference('showSignalOnCards');
 
   return (
     <View style={styles.card}>
-      <View style={styles.accent(lighthouse.state)} />
-      <Pressable
+      <PressableScale
         testID={`lighthouse-card-${lighthouse.id}`}
         onPress={openDetail}
+        scaleTo={0.98}
+        containerStyle={styles.pressArea}
         accessibilityRole='button'
-        accessibilityLabel={t('lighthouses.card.a11yLabel', {
-          name,
-          state: t(`lighthouses.state.${lighthouse.state}`),
-        })}
-        style={({ pressed }) => [styles.body, pressed && styles.pressed]}
+        accessibilityLabel={a11yLabel}
+        style={styles.body}
       >
-        <Text variant='headline' numberOfLines={1}>
-          {name}
-        </Text>
-        <StatusChip state={lighthouse.state} testID={`lighthouse-state-${lighthouse.id}-${lighthouse.state}`} />
-      </Pressable>
+        <LighthouseIcon state={lighthouse.state} size={56} />
+        <View style={styles.texts}>
+          <View style={styles.titleRow}>
+            <Text variant='headline' numberOfLines={1} style={styles.name}>
+              {name}
+            </Text>
+            <Icon name={CHEVRON} size={12} tone='muted' />
+          </View>
+          <Text variant='caption' tone='muted' numberOfLines={1}>
+            {subtitle}
+          </Text>
+          <View style={styles.statusRow}>
+            <Animated.View
+              key={lighthouse.state}
+              entering={transitions.crossfadeIn()}
+              testID={`lighthouse-state-${lighthouse.id}-${lighthouse.state}`}
+            >
+              <Text variant='callout' style={styles.status(stateTextColor)}>
+                {stateLabel}
+              </Text>
+            </Animated.View>
+            {showChannel && <ChannelLabel lighthouse={lighthouse} isConflicting={isConflicting} />}
+            {showSignal && <SignalStrength rssi={lighthouse.rssi} />}
+          </View>
+        </View>
+      </PressableScale>
       <PowerToggle lighthouse={lighthouse} />
     </View>
   );
@@ -56,20 +76,40 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
     borderRadius: theme.radius.lg,
     borderCurve: 'continuous',
-    overflow: 'hidden',
+    boxShadow: `0 6px 20px ${theme.colors.shadow}`,
   },
-  accent: (state: keyof typeof theme.lighthouseState) => ({
-    alignSelf: 'stretch',
-    width: 5,
-    backgroundColor: theme.lighthouseState[state],
-  }),
-  body: {
+  pressArea: {
     flex: 1,
-    gap: theme.space(2),
+  },
+  body: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.space(4),
     paddingVertical: theme.space(4),
-    paddingLeft: theme.space(2),
+    paddingLeft: theme.space(4),
   },
-  pressed: {
-    opacity: 0.7,
+  texts: {
+    flex: 1,
+    gap: theme.space(0.5),
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.space(1.5),
+  },
+  name: {
+    flexShrink: 1,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    columnGap: theme.space(2.5),
+    rowGap: theme.space(1),
+    marginTop: theme.space(1),
+  },
+  status: (color: string) => ({
+    color,
+    fontWeight: '600',
+  }),
 }));

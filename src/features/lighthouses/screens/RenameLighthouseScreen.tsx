@@ -10,7 +10,6 @@ import { haptics } from '@/shared/utils/haptics';
 import { useDisplayName, useLighthouse } from '../hooks/useLighthouses';
 import { MIN_NAME_LENGTH, renameLighthouse, resetLighthouseName } from '../store/device-names.store';
 
-/** Presented as a form sheet above the detail screen. */
 export function RenameLighthouseScreen() {
   const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,7 +24,7 @@ export function RenameLighthouseScreen() {
       setError(t('lighthouses.rename.tooShort'));
       return;
     }
-    renameLighthouse(id, name);
+    renameLighthouse(id, name, lighthouse?.name);
     haptics.success();
     router.back();
   };

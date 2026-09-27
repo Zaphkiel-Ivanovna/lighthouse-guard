@@ -1,7 +1,11 @@
 import { Stack } from 'expo-router';
 
-import { largeTitleStackOptions } from '@/shared/navigation/stack-options';
+import { tabRootOptions, tabStackOptions } from '@/shared/navigation/stack-options';
 
 export default function FaqLayout() {
-  return <Stack screenOptions={largeTitleStackOptions} />;
+  return (
+    <Stack screenOptions={tabStackOptions}>
+      <Stack.Screen name='index' options={tabRootOptions} />
+    </Stack>
+  );
 }

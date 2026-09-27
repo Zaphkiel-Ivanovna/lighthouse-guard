@@ -10,7 +10,6 @@ type Props = {
   readonly children: ReactNode;
 };
 
-/** Grouped, inset list (iOS Settings style). Separators are inserted between rows. */
 export function ListSection({ title, footer, children }: Props) {
   const rows = Children.toArray(children);
   return (

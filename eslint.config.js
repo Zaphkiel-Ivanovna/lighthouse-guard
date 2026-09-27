@@ -1,4 +1,3 @@
-// https://docs.expo.dev/guides/using-eslint/
 const { defineConfig } = require('eslint/config');
 const expoConfig = require('eslint-config-expo/flat');
 const prettierConfig = require('eslint-config-prettier/flat');
@@ -27,6 +26,10 @@ const RESTRICTED_PATTERNS = {
   ble: {
     group: ['react-native-ble-nitro', 'react-native-ble-plx'],
     message: 'Only src/core/ble/transport may talk to the BLE library. Use @/core/ble.',
+  },
+  appIcon: {
+    group: ['expo-alternate-app-icons'],
+    message: 'Only src/core/app-icon may change the app icon. Use @/core/app-icon.',
   },
   deepFeature: {
     group: ['@/features/*/*'],
@@ -71,7 +74,7 @@ module.exports = defineConfig([
           alphabetize: { order: 'asc', caseInsensitive: true },
         },
       ],
-      'no-restricted-imports': restrictedImports('navigation', 'styling', 'ble', 'deepFeature'),
+      'no-restricted-imports': restrictedImports('navigation', 'styling', 'ble', 'appIcon', 'deepFeature'),
       'import/no-restricted-paths': [
         'error',
         {
@@ -86,9 +89,30 @@ module.exports = defineConfig([
     },
   },
   {
+    files: ['src/core/logger/logger.ts'],
+    rules: { 'no-console': 'off' },
+  },
+  {
+    files: ['src/theme/unistyles.ts'],
+    rules: { '@typescript-eslint/no-empty-object-type': 'off' },
+  },
+  {
+    files: ['jest.setup.ts', '**/__tests__/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+      'no-restricted-imports': restrictedImports('navigation', 'styling', 'ble', 'deepFeature'),
+    },
+  },
+  {
     files: ['src/core/ble/transport/**/*.ts'],
     rules: {
-      'no-restricted-imports': restrictedImports('navigation', 'styling', 'deepFeature'),
+      'no-restricted-imports': restrictedImports('navigation', 'styling', 'appIcon', 'deepFeature'),
+    },
+  },
+  {
+    files: ['src/core/app-icon/**/*.ts'],
+    rules: {
+      'no-restricted-imports': restrictedImports('navigation', 'styling', 'ble', 'deepFeature'),
     },
   },
 ]);

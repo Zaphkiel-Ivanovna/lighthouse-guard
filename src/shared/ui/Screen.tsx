@@ -1,24 +1,36 @@
 import type { ReactNode } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
+
+import { withAlpha } from '@/theme';
+
+import { GradientLayer } from './GradientLayer';
 
 type Props = {
   readonly children: ReactNode;
+  readonly tint?: string;
   readonly testID?: string;
 };
 
-/** Scrollable screen body. Works with large titles and native tabs through automatic content insets. */
-export function Screen({ children, testID }: Props) {
+export function Screen({ children, tint, testID }: Props) {
   return (
-    <ScrollView
-      testID={testID}
-      style={styles.root}
-      contentContainerStyle={styles.content}
-      contentInsetAdjustmentBehavior='automatic'
-      keyboardShouldPersistTaps='handled'
-    >
-      {children}
-    </ScrollView>
+    <View style={styles.root}>
+      {tint && (
+        <GradientLayer
+          key={tint}
+          fadeIn
+          image={`linear-gradient(180deg, ${withAlpha(tint, 0.24)} 0%, ${withAlpha(tint, 0.08)} 30%, ${withAlpha(tint, 0)} 58%)`}
+        />
+      )}
+      <ScrollView
+        testID={testID}
+        contentContainerStyle={styles.content}
+        contentInsetAdjustmentBehavior='automatic'
+        keyboardShouldPersistTaps='handled'
+      >
+        {children}
+      </ScrollView>
+    </View>
   );
 }
 
