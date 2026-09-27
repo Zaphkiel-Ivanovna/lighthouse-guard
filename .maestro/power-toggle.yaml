@@ -1,4 +1,4 @@
-appId: fr.zaphkiel.lighthouseguard
+appId: dev.zaphkiel.lighthouseguard
 name: Turn a simulated lighthouse on from the list
 tags:
   - smoke

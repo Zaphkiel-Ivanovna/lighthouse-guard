@@ -1,4 +1,4 @@
-appId: fr.zaphkiel.lighthouseguard
+appId: dev.zaphkiel.lighthouseguard
 ---
 - tapOn:
     text: 'Allow'

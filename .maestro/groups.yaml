@@ -1,4 +1,4 @@
-appId: fr.zaphkiel.lighthouseguard
+appId: dev.zaphkiel.lighthouseguard
 name: Create a group, control it, then show it at launch
 ---
 - launchApp:

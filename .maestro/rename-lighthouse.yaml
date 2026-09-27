@@ -1,4 +1,4 @@
-appId: fr.zaphkiel.lighthouseguard
+appId: dev.zaphkiel.lighthouseguard
 name: Rename a simulated lighthouse from its detail screen
 ---
 - launchApp:

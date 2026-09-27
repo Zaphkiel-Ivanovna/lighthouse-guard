@@ -24,7 +24,7 @@ const config: ExpoConfig = {
   userInterfaceStyle: 'automatic',
   platforms: ['ios', 'android'],
   ios: {
-    bundleIdentifier: 'fr.zaphkiel.lighthouseguard',
+    bundleIdentifier: 'dev.zaphkiel.lighthouseguard',
     appleTeamId: '2APB3NHX44',
     supportsTablet: true,
     icon: {
@@ -37,7 +37,7 @@ const config: ExpoConfig = {
     },
   },
   android: {
-    package: 'fr.zaphkiel.lighthouseguard',
+    package: 'dev.zaphkiel.lighthouseguard',
     adaptiveIcon: {
       backgroundColor: '#F8FAFC',
       foregroundImage: './assets/images/android-icon-foreground.png',
