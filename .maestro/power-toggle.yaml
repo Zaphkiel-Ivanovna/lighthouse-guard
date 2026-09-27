@@ -1,0 +1,16 @@
+appId: fr.zaphkiel.lighthouseguard
+name: Turn a simulated lighthouse on from the list
+tags:
+  - smoke
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/enable-mock-and-scan.yaml
+- assertVisible:
+    id: lighthouse-state-MOCK-LHB-1A2B3C4D-sleep
+- tapOn:
+    id: power-toggle-MOCK-LHB-1A2B3C4D
+- extendedWaitUntil:
+    visible:
+      id: lighthouse-state-MOCK-LHB-1A2B3C4D-on
+    timeout: 20000

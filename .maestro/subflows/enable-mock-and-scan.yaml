@@ -1,0 +1,21 @@
+appId: fr.zaphkiel.lighthouseguard
+---
+- tapOn:
+    text: 'Allow'
+    optional: true
+- tapOn:
+    id: tab-settings
+- tapOn:
+    id: settings-developer
+- tapOn:
+    id: mock-mode-switch
+- tapOn:
+    id: BackButton
+- tapOn:
+    id: tab-lighthouses
+- tapOn:
+    id: scan-button
+- extendedWaitUntil:
+    visible:
+      id: lighthouse-card-MOCK-LHB-1A2B3C4D
+    timeout: 15000

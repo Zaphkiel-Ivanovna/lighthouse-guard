@@ -1,0 +1,8 @@
+ios/
+android/
+.expo/
+.yarn/
+coverage/
+dist/
+yarn.lock
+.claude/skills/react-native-unistyles-v3/

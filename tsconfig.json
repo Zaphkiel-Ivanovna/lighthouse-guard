@@ -1,33 +1,17 @@
 {
-  "extends": "./tsconfig.base",
+  "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "allowImportingTsExtensions": true,
     "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "types": ["jest"],
     "paths": {
-      "@/stores/*": [
-        "./stores/*"
-      ],
-      "@/types/*": [
-        "./types/*"
-      ],
-      "@/utils/*": [
-        "./utils/*"
-      ],
-      "@/components/*": [
-        "./components/*"
-      ],
-      "@/services/*": [
-        "./services/*"
-      ],
-      "@/app/*": [
-        "./app/*"
-      ],
-    },
+      "@/*": ["./src/*"],
+      "@/assets/*": ["./assets/*"]
+    }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
+  "exclude": ["node_modules", "ios", "android", ".claude"]
 }
