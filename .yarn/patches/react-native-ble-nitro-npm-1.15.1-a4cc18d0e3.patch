@@ -1,0 +1,48 @@
+diff --git a/lib/commonjs/manager.js b/lib/commonjs/manager.js
+index dddf34bf69e8b74c77bfe5f936422861934c05d2..53ae6b5b4152a6c915bf59b27983843b24a1c7ca 100644
+--- a/lib/commonjs/manager.js
++++ b/lib/commonjs/manager.js
+@@ -294,11 +294,6 @@ class BleNitroManager {
+      */
+     disconnect(deviceId) {
+         return new Promise((resolve, reject) => {
+-            // Check if already disconnected
+-            if (!this.isConnected(deviceId)) {
+-                resolve(deviceId);
+-                return;
+-            }
+             this.Instance.disconnect(deviceId, (success, error) => {
+                 if (success) {
+                     resolve(deviceId);
+diff --git a/lib/manager.js b/lib/manager.js
+index 9174ffa0b8f830e895ee9f6ee945d73d84a57cf9..4a0cce67eac27f64e8f4fa142396a53bc16a4104 100644
+--- a/lib/manager.js
++++ b/lib/manager.js
+@@ -277,11 +277,6 @@ export class BleNitroManager {
+      */
+     disconnect(deviceId) {
+         return new Promise((resolve, reject) => {
+-            // Check if already disconnected
+-            if (!this.isConnected(deviceId)) {
+-                resolve(deviceId);
+-                return;
+-            }
+             this.Instance.disconnect(deviceId, (success, error) => {
+                 if (success) {
+                     resolve(deviceId);
+diff --git a/src/manager.ts b/src/manager.ts
+index 6266aff75a67e97e69eb0f0d62a9f6e4ccb1ee1d..9027007a0c793fc841dc8a7fb95c4f0f495a79f8 100644
+--- a/src/manager.ts
++++ b/src/manager.ts
+@@ -398,11 +398,6 @@ export class BleNitroManager {
+    */
+   public disconnect(deviceId: string): Promise<string> {
+     return new Promise((resolve, reject) => {
+-      // Check if already disconnected
+-      if (!this.isConnected(deviceId)) {
+-        resolve(deviceId);
+-        return;
+-      }
+ 
+       this.Instance.disconnect(
+         deviceId,

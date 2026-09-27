@@ -12,7 +12,6 @@ export class AbortedError extends Error {
   }
 }
 
-/** Resolves after `ms`, or rejects with `AbortedError` as soon as `signal` aborts. */
 export function wait(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) {

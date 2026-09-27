@@ -11,11 +11,6 @@ function requiredAndroidPermissions(): Permission[] {
     : [ACCESS_FINE_LOCATION];
 }
 
-/**
- * Requests the runtime permissions BLE needs. iOS prompts natively on first
- * BLE use (lazy init), so this is a no-op there.
- * @throws BleError('permissionDenied')
- */
 export async function ensureBlePermissions(): Promise<void> {
   if (Platform.OS !== 'android') return;
 

@@ -12,7 +12,6 @@ export type BleErrorCode =
   | 'aborted'
   | 'unknown';
 
-/** Every error leaving `@/core/ble` is a `BleError`; the UI maps `code` to `ble.errors.<code>`. */
 export class BleError extends Error {
   readonly code: BleErrorCode;
 

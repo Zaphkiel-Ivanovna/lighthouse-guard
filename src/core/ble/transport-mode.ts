@@ -7,7 +7,6 @@ import { createLighthouseClient, type LighthouseClient } from './lighthouse-clie
 import { MockBleTransport } from './transport/mock-transport';
 import { NitroBleTransport } from './transport/nitro-transport';
 
-/** `mock` = debug mode: simulated lighthouses, no hardware or permissions needed. */
 export type TransportMode = 'native' | 'mock';
 
 type TransportModeState = { readonly mode: TransportMode };
@@ -22,7 +21,6 @@ export const useTransportModeStore = create<TransportModeState>()(
 
 let cached: { mode: TransportMode; client: LighthouseClient } | null = null;
 
-/** The client for the current transport mode, created lazily. */
 export function getLighthouseClient(): LighthouseClient {
   const { mode } = useTransportModeStore.getState();
   if (cached && cached.mode === mode) return cached.client;
@@ -33,5 +31,7 @@ export function getLighthouseClient(): LighthouseClient {
 }
 
 export function setTransportMode(mode: TransportMode): void {
+  if (useTransportModeStore.getState().mode === mode) return;
+  cached = null;
   useTransportModeStore.setState({ mode });
 }

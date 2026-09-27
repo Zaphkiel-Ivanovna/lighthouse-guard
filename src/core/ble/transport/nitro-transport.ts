@@ -16,7 +16,6 @@ const ADAPTER_STATE: Record<BLEState, BleAdapterState> = {
   [BLEState.PoweredOn]: 'poweredOn',
 };
 
-/** react-native-ble-nitro implementation. The native module is touched lazily (iOS permission prompt on first use). */
 export class NitroBleTransport implements BleTransport {
   readonly kind = 'native';
   #manager: BleNitroManager | null = null;
@@ -47,22 +46,42 @@ export class NitroBleTransport implements BleTransport {
     this.manager.stopScan();
   }
 
+  readonly #attempts = new Map<string, symbol>();
+  readonly #nativeConnects = new Set<string>();
+
   async connect(deviceId: string): Promise<void> {
+    if (this.#nativeConnects.has(deviceId)) {
+      throw new BleError('connectionFailed', `a connection to ${deviceId} is still pending`);
+    }
+    const attempt = Symbol(deviceId);
+    this.#attempts.set(deviceId, attempt);
+    const isAbandoned = () => this.#attempts.get(deviceId) !== attempt;
+
+    let isLinked = false;
     try {
-      await this.manager.connect(deviceId, (id, interrupted, error) => {
-        if (interrupted) logger.warn(`connection to ${id} interrupted`, error);
-      });
-      await this.manager.discoverServices(deviceId);
+      this.#nativeConnects.add(deviceId);
+      try {
+        await this.manager.connect(deviceId, (id, interrupted, error) => {
+          if (interrupted) logger.warn(`connection to ${id} interrupted`, error);
+        });
+        isLinked = true;
+      } finally {
+        this.#nativeConnects.delete(deviceId);
+      }
+      if (isAbandoned()) throw new BleError('aborted', `connect ${deviceId} abandoned`);
+      await this.manager.getServicesWithCharacteristics(deviceId);
+      if (isAbandoned()) throw new BleError('aborted', `connect ${deviceId} abandoned`);
     } catch (error) {
+      if (isAbandoned() && isLinked) {
+        await this.manager.disconnect(deviceId).catch((cause: unknown) => logger.warn('late disconnect failed', cause));
+      }
       throw toBleError(error, 'connectionFailed');
     }
   }
 
-  /**
-   * Always asks the native side to disconnect, even when not (yet) connected: after a
-   * connect timeout this cancels the pending connection instead of leaking it.
-   */
   async disconnect(deviceId: string): Promise<void> {
+    this.#attempts.delete(deviceId);
+    if (!this.manager.isConnected(deviceId) && !this.#nativeConnects.has(deviceId)) return;
     try {
       await this.manager.disconnect(deviceId);
     } catch (error) {

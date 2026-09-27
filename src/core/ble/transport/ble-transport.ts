@@ -15,15 +15,9 @@ export type ScanRequest = {
   readonly onError: (error: BleError) => void;
 };
 
-/**
- * Hardware abstraction over a BLE central. Implementations: `NitroBleTransport`
- * (react-native-ble-nitro) and `MockBleTransport` (debug mode + tests).
- * Methods reject with `BleError` only.
- */
 export type BleTransport = {
   readonly kind: 'native' | 'mock';
   getAdapterState(): BleAdapterState;
-  /** Notifies adapter state changes (not the current state). Returns the unsubscribe function. */
   onAdapterStateChange(listener: (state: BleAdapterState) => void): () => void;
   startScan(request: ScanRequest): void;
   stopScan(): void;

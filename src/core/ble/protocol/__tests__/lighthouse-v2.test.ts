@@ -1,6 +1,8 @@
 import { POWER_COMMAND_BYTE, POWER_STATE_BYTE } from '../constants';
 import {
+  decodeChannel,
   decodePowerState,
+  decodeText,
   encodeIdentify,
   encodePowerCommand,
   isLighthouseName,
@@ -12,11 +14,15 @@ describe('Lighthouse V2 protocol', () => {
     [POWER_STATE_BYTE.sleep, 'sleep'],
     [POWER_STATE_BYTE.standby, 'standby'],
     [POWER_STATE_BYTE.booting, 'booting'],
-    [POWER_STATE_BYTE.bootingSpinUp, 'booting'],
-    [POWER_STATE_BYTE.bootingLaser, 'booting'],
-    [POWER_STATE_BYTE.on, 'on'],
+    [POWER_STATE_BYTE.awake, 'on'],
+    [POWER_STATE_BYTE.awakeFromSleep, 'on'],
+    [POWER_STATE_BYTE.awakeFromStandby, 'on'],
   ])('decodes power byte 0x%s as %s', (byte, state) => {
     expect(decodePowerState([byte])).toBe(state);
+  });
+
+  it('reports a station woken by SteamVR from sleep (0x09) as on, not booting', () => {
+    expect(decodePowerState([0x09])).toBe('on');
   });
 
   it('decodes unknown or empty payloads as unknown instead of throwing', () => {
@@ -44,5 +50,21 @@ describe('Lighthouse V2 protocol', () => {
     expect(isLighthouseName('LHB-1A2B3C4D')).toBe(true);
     expect(isLighthouseName('HTC BS 1234')).toBe(false);
     expect(isLighthouseName(null)).toBe(false);
+  });
+
+  it.each([
+    [[0x01], 1],
+    [[0x10], 16],
+    [[0x00], null],
+    [[0x11], null],
+    [[], null],
+  ])('decodes channel bytes %j as %p', (bytes, channel) => {
+    expect(decodeChannel(bytes)).toBe(channel);
+  });
+
+  it('decodes device information strings, dropping padding and control bytes', () => {
+    expect(decodeText([0x31, 0x2e, 0x32, 0x00, 0x00])).toBe('1.2');
+    expect(decodeText([0x20, 0x56, 0x0a, 0x61, 0x20, 0x20, 0x6c, 0x76, 0x65, 0x20])).toBe('Va lve');
+    expect(decodeText([0x00, 0xff])).toBeNull();
   });
 });
