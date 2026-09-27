@@ -164,18 +164,6 @@ The icons are generated from the master logo ([`assets/brand/logo.svg`](assets/b
 python3 scripts/brand/generate_icons.py   # needs rsvg-convert and ImageMagick
 ```
 
-### App Store assets
-
-`scripts/store/` renders the App Store screenshots and manages the listing through the App Store Connect API:
-
-```bash
-node scripts/store/render.mjs                     # 1320×2868 slides from store/captures, copy in slides.json
-node scripts/store/upload.mjs --dry-run           # screenshots and preview videos, for en-US and fr-FR
-node scripts/store/privacy.mjs --dry-run          # privacy policy URLs
-```
-
-The upload scripts need `ASC_KEY_ID` and `ASC_ISSUER_ID`, and read the key from `~/.appstoreconnect/private_keys/AuthKey_<ASC_KEY_ID>.p8`. Never commit that file. Drop `--dry-run` to apply the changes.
-
 ## How it works
 
 Base Station 2.0 exposes a small GATT service. The app scans for the `LHB-` name prefix, then opens short sessions to read or write a single byte.
