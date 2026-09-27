@@ -50,6 +50,7 @@ No PC, no SteamVR, no cable: just Bluetooth.
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [Acknowledgements](#acknowledgements)
+- [Privacy](#privacy)
 - [License and disclaimer](#license-and-disclaimer)
 
 ## Why
@@ -236,6 +237,10 @@ The repository is set up for AI-assisted development with [Claude Code](https://
 - [BenWoodford's reverse-engineered GATT notes](https://gist.github.com/BenWoodford/3a1e500a4ea2673525f5adb4120fd47c) for the Base Station 2.0 protocol.
 - [svrbsctl](https://github.com/chenxiaolong/svrbsctl) and [lighthouse_pm](https://github.com/jeroen1602/lighthouse_pm) for the power state mapping.
 - [Expo](https://expo.dev), [Unistyles](https://www.unistyl.es), [react-native-ble-nitro](https://github.com/zykeco/react-native-ble-nitro) and [expo-alternate-app-icons](https://github.com/pchalupa/expo-alternate-app-icons).
+
+## Privacy
+
+Lighthouse Guard collects no data: no account, no analytics, no tracking, and nothing leaves your device except the Bluetooth commands sent to your base stations. Read the full [privacy policy](docs/privacy/en.md) ([version française](docs/privacy/fr.md)).
 
 ## License and disclaimer
 
