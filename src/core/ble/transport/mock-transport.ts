@@ -105,7 +105,17 @@ export class MockBleTransport implements BleTransport {
 
   setAdapterState(state: BleAdapterState): void {
     this.#adapterState = state;
+    if (state !== 'poweredOn') {
+      this.stopScan();
+      this.#devices.forEach((device) => {
+        device.connected = false;
+      });
+    }
     this.#adapterListeners.forEach((listener) => listener(state));
+  }
+
+  dropConnection(deviceId: string): void {
+    this.#device(deviceId).connected = false;
   }
 
   isConnected(deviceId: string): boolean {
@@ -138,6 +148,7 @@ export class MockBleTransport implements BleTransport {
 
   async connect(deviceId: string): Promise<void> {
     await wait(this.#latencyMs);
+    this.#assertPoweredOn();
     const device = this.#device(deviceId);
     if (device.connected) throw new BleError('connectionFailed', `${deviceId} accepts a single connection`);
     device.connected = true;
@@ -150,6 +161,7 @@ export class MockBleTransport implements BleTransport {
 
   async read(deviceId: string, service: string, characteristic: string): Promise<Bytes> {
     await wait(this.#latencyMs);
+    this.#assertPoweredOn();
     const device = this.#connectedDevice(deviceId, service);
     if (device.unreadable) throw new BleError('operationFailed', `${deviceId} does not answer reads`);
     if (service === DEVICE_INFORMATION_SERVICE) return this.#readInformation(device, characteristic);
@@ -165,6 +177,7 @@ export class MockBleTransport implements BleTransport {
 
   async write(deviceId: string, service: string, characteristic: string, data: Bytes): Promise<void> {
     await wait(this.#latencyMs);
+    this.#assertPoweredOn();
     const device = this.#connectedDevice(deviceId, service);
     switch (characteristic) {
       case LIGHTHOUSE_V2_CHARACTERISTICS.power:
@@ -175,6 +188,12 @@ export class MockBleTransport implements BleTransport {
         return;
       default:
         throw new BleError('operationFailed', `Characteristic ${characteristic} is not writable`);
+    }
+  }
+
+  #assertPoweredOn(): void {
+    if (this.#adapterState !== 'poweredOn') {
+      throw new BleError('operationFailed', `Bluetooth adapter is ${this.#adapterState}`);
     }
   }
 

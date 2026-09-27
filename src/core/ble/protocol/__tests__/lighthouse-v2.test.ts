@@ -6,6 +6,7 @@ import {
   encodeIdentify,
   encodePowerCommand,
   isLighthouseName,
+  powerOutcome,
   targetStateFor,
 } from '../lighthouse-v2';
 
@@ -66,5 +67,18 @@ describe('Lighthouse V2 protocol', () => {
     expect(decodeText([0x31, 0x2e, 0x32, 0x00, 0x00])).toBe('1.2');
     expect(decodeText([0x20, 0x56, 0x0a, 0x61, 0x20, 0x20, 0x6c, 0x76, 0x65, 0x20])).toBe('Va lve');
     expect(decodeText([0x00, 0xff])).toBeNull();
+  });
+
+  it.each([
+    ['on', 'on', 'reached'],
+    ['on', 'booting', 'progressing'],
+    ['standby', 'booting', 'progressing'],
+    ['on', 'standby', 'missed'],
+    ['on', 'unknown', 'missed'],
+    ['standby', 'sleep', 'missed'],
+    ['sleep', 'booting', 'missed'],
+    ['sleep', 'sleep', 'reached'],
+  ] as const)('judges a %s command that ends in %s as %s', (command, state, outcome) => {
+    expect(powerOutcome(command, state)).toBe(outcome);
   });
 });

@@ -6,7 +6,6 @@ export const fr = {
       cancel: 'Annuler',
       save: 'Enregistrer',
       reset: 'Réinitialiser',
-      retry: 'Réessayer',
     },
   },
   tabs: {
@@ -260,12 +259,12 @@ export const fr = {
       standbyVsSleep: {
         question: 'Quelle différence entre Veille et Sommeil ?',
         answer:
-          'Le mode Sommeil coupe le rotor et les lasers. La Veille ne coupe que les lasers et laisse tourner le rotor : le réveil est plus rapide, au prix d’un léger bruit de fond.',
+          'Le mode Sommeil coupe le rotor et les lasers. La Veille ne coupe que les lasers et laisse tourner le rotor : le réveil est plus rapide, au prix d’un léger bruit de fond.',
       },
       notDetected: {
         question: 'Ma lighthouse n’est pas détectée, que faire ?',
         answer:
-          'Redémarrez la station : débranchez-la, attendez qu’elle soit complètement éteinte, rebranchez-la, puis relancez un scan une fois qu’elle a redémarré.',
+          'Redémarrez la station : débranchez-la, attendez qu’elle soit complètement éteinte, rebranchez-la, puis relancez un scan une fois qu’elle a redémarré.',
       },
       oneConnection: {
         question: 'Pourquoi une commande échoue-t-elle parfois ?',
@@ -283,6 +282,7 @@ export const fr = {
       timeout: 'La lighthouse n’a pas répondu à temps. Rapprochez-vous et réessayez.',
       connectionFailed: 'Connexion à la lighthouse impossible.',
       operationFailed: 'La lighthouse a refusé la commande.',
+      notReached: 'La lighthouse n’est pas passée au mode demandé. Réessayez.',
       deviceNotFound: 'Lighthouse introuvable. Relancez un scan.',
       aborted: 'Opération annulée.',
       unknown: 'Erreur Bluetooth inattendue.',

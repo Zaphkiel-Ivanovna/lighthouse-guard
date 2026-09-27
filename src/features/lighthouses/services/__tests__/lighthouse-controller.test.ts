@@ -213,4 +213,64 @@ describe('lighthouse controller (debug mode)', () => {
     expect(readStatus).toHaveBeenCalledTimes(1);
     readStatus.mockRestore();
   });
+
+  it('reports an error when a power command never reaches its target', async () => {
+    const scan = startScan();
+    await jest.advanceTimersByTimeAsync(12_000);
+    await scan;
+    const setPowerSpy = jest.spyOn(getLighthouseClient(), 'setPower').mockResolvedValueOnce('standby');
+
+    await setPower(SLEEPING, 'on');
+
+    expect(useLighthousesStore.getState().commands[SLEEPING]).toEqual({ status: 'error', error: 'notReached' });
+    setPowerSpy.mockRestore();
+  });
+
+  it('treats a lighthouse still booting as progressing and reads it again later', async () => {
+    const scan = startScan();
+    await jest.advanceTimersByTimeAsync(12_000);
+    await scan;
+    const setPowerSpy = jest.spyOn(getLighthouseClient(), 'setPower').mockResolvedValueOnce('booting');
+    const readStatus = jest.spyOn(getLighthouseClient(), 'readStatus');
+
+    await setPower(SLEEPING, 'on');
+    expect(useLighthousesStore.getState().commands[SLEEPING]).toEqual({ status: 'idle', error: null });
+
+    await jest.advanceTimersByTimeAsync(6_000);
+    expect(readStatus).toHaveBeenCalledWith(SLEEPING);
+    setPowerSpy.mockRestore();
+    readStatus.mockRestore();
+  });
+
+  it('reports a fleet station that never reaches its target', async () => {
+    const scan = startScan();
+    await jest.advanceTimersByTimeAsync(12_000);
+    await scan;
+    const readPowerState = jest.spyOn(getLighthouseClient(), 'readPowerState').mockResolvedValue('standby');
+
+    const all = setPowerAll('on', [SLEEPING]);
+    await jest.advanceTimersByTimeAsync(20_000);
+    await all;
+
+    expect(useLighthousesStore.getState().commands[SLEEPING]).toEqual({ status: 'error', error: 'notReached' });
+    readPowerState.mockRestore();
+  });
+
+  it('keeps a command from a previous transport session out of the next one', async () => {
+    const firstScan = startScan();
+    await jest.advanceTimersByTimeAsync(12_000);
+    await firstScan;
+    const stale = setPower(SLEEPING, 'on');
+    await jest.advanceTimersByTimeAsync(200);
+
+    setTransportMode('native');
+    setTransportMode('mock');
+    const secondScan = startScan();
+    await jest.advanceTimersByTimeAsync(12_000);
+    await Promise.all([stale, secondScan]);
+
+    const state = useLighthousesStore.getState();
+    expect(state.devices[SLEEPING]?.state).toBe('sleep');
+    expect(state.commands[SLEEPING]).toBeUndefined();
+  });
 });

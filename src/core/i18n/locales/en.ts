@@ -4,7 +4,6 @@ export const en = {
       cancel: 'Cancel',
       save: 'Save',
       reset: 'Reset',
-      retry: 'Retry',
     },
   },
   tabs: {
@@ -278,6 +277,7 @@ export const en = {
       timeout: 'The lighthouse did not answer in time. Move closer and retry.',
       connectionFailed: 'Could not connect to the lighthouse.',
       operationFailed: 'The lighthouse rejected the command.',
+      notReached: 'The lighthouse did not switch to the requested mode. Try again.',
       deviceNotFound: 'Lighthouse not found. Run a new scan.',
       aborted: 'Operation cancelled.',
       unknown: 'Unexpected Bluetooth error.',

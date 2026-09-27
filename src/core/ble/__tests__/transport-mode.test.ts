@@ -14,13 +14,24 @@ describe('transport mode', () => {
     expect(getLighthouseClient()).toBe(client);
   });
 
-  it('builds a new client when switching modes', () => {
-    setTransportMode('mock');
-    const mock = getLighthouseClient();
+  it('keeps a single native client, and so a single native queue, across mode switches', () => {
+    const native = getLighthouseClient();
 
+    setTransportMode('mock');
+    expect(getLighthouseClient().transportKind).toBe('mock');
     setTransportMode('native');
 
     expect(useTransportModeStore.getState().mode).toBe('native');
-    expect(getLighthouseClient()).not.toBe(mock);
+    expect(getLighthouseClient()).toBe(native);
+  });
+
+  it('starts the simulated stations afresh each time the simulation is turned on', () => {
+    setTransportMode('mock');
+    const first = getLighthouseClient();
+
+    setTransportMode('native');
+    setTransportMode('mock');
+
+    expect(getLighthouseClient()).not.toBe(first);
   });
 });

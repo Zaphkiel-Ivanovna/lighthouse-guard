@@ -1,4 +1,4 @@
-import { BleNitro } from 'react-native-ble-nitro';
+import { BleNitro, BLEState } from 'react-native-ble-nitro';
 
 import { NitroBleTransport } from '../nitro-transport';
 
@@ -22,6 +22,14 @@ function createFakeManager() {
       return Promise.resolve('LHB');
     }),
     isConnected: jest.fn(() => connected),
+    stateListener: null as ((state: BLEState) => void) | null,
+    unsubscribeFromStateChange: jest.fn(() => {
+      manager.stateListener = null;
+    }),
+    subscribeToStateChange: jest.fn((listener: (state: BLEState) => void) => {
+      manager.stateListener = listener;
+      return { remove: () => manager.unsubscribeFromStateChange() };
+    }),
   };
   return { manager, finishConnect: () => resolveConnect(), isConnected: () => connected };
 }
@@ -99,5 +107,27 @@ describe('NitroBleTransport', () => {
     await expect(connecting).resolves.toBeUndefined();
     expect(fake.manager.getServicesWithCharacteristics).toHaveBeenCalledWith('LHB');
     expect(fake.isConnected()).toBe(true);
+  });
+
+  it('keeps every adapter listener alive until the last one unsubscribes', () => {
+    const fake = createFakeManager();
+    jest.mocked(BleNitro.instance).mockReturnValue(fake.manager as never);
+    const transport = new NitroBleTransport();
+    const first = jest.fn();
+    const second = jest.fn();
+
+    const stopFirst = transport.onAdapterStateChange(first);
+    const stopSecond = transport.onAdapterStateChange(second);
+    stopFirst();
+    stopFirst();
+    fake.manager.stateListener?.(BLEState.PoweredOn);
+
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledWith('poweredOn');
+    expect(fake.manager.subscribeToStateChange).toHaveBeenCalledTimes(1);
+    expect(fake.manager.unsubscribeFromStateChange).not.toHaveBeenCalled();
+
+    stopSecond();
+    expect(fake.manager.unsubscribeFromStateChange).toHaveBeenCalledTimes(1);
   });
 });

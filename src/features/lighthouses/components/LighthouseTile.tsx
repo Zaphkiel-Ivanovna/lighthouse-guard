@@ -4,7 +4,7 @@ import { StyleSheet } from 'react-native-unistyles';
 
 import { usePreference } from '@/core/preferences';
 import { PressableScale, Text } from '@/shared/ui';
-import { transitions } from '@/theme';
+import { breakpoints, transitions } from '@/theme';
 
 import { useLighthousePresentation } from '../hooks/useLighthousePresentation';
 import type { Lighthouse } from '../types';
@@ -68,9 +68,15 @@ export function LighthouseTile({ lighthouse }: Props) {
   );
 }
 
-function tileWidth(screenWidth: number, pagePadding: number, gutter: number): number {
-  const columns = screenWidth >= 900 ? 4 : screenWidth >= 600 ? 3 : 2;
-  return (screenWidth - pagePadding - gutter * (columns - 1)) / columns;
+function columnsFor(width: number): number {
+  if (width >= breakpoints.lg) return 4;
+  if (width >= breakpoints.md) return 3;
+  return 2;
+}
+
+function tileWidth(width: number, pagePadding: number, gutter: number): number {
+  const columns = columnsFor(width);
+  return (width - pagePadding - gutter * (columns - 1)) / columns;
 }
 
 const styles = StyleSheet.create((theme, rt) => ({

@@ -39,7 +39,8 @@ export type ThemeMode = 'light' | 'dark';
 export const DEFAULT_ACCENT: AccentName = 'cyan';
 export const ACCENT_NAMES = Object.keys(ACCENTS) as AccentName[];
 
-export const isAccentName = (value: unknown): value is AccentName => typeof value === 'string' && value in ACCENTS;
+export const isAccentName = (value: unknown): value is AccentName =>
+  typeof value === 'string' && Object.hasOwn(ACCENTS, value);
 
 export function applyAccent(theme: AppTheme, mode: ThemeMode, name: AccentName): AppTheme {
   const palette = ACCENTS[name][mode];

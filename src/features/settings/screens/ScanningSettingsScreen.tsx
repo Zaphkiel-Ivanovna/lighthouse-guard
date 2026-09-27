@@ -1,7 +1,7 @@
 import { router, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { SCAN_DURATIONS, setPreference, usePreference } from '@/core/preferences';
+import { DEFAULT_PREFERENCES, SCAN_DURATIONS, setPreference, usePreference } from '@/core/preferences';
 import { ListRow, ListSection, Screen } from '@/shared/ui';
 
 import { ChoiceList } from '../components/ChoiceList';
@@ -41,7 +41,10 @@ export function ScanningSettingsScreen() {
         }))}
         value={String(scanDuration)}
         onChange={(seconds) =>
-          setPreference('scanDurationSeconds', SCAN_DURATIONS.find((option) => String(option) === seconds) ?? 10)
+          setPreference(
+            'scanDurationSeconds',
+            SCAN_DURATIONS.find((option) => String(option) === seconds) ?? DEFAULT_PREFERENCES.scanDurationSeconds,
+          )
         }
       />
       <ListSection>

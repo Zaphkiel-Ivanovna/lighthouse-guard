@@ -11,6 +11,7 @@ import type { Bytes } from '../transport/ble-transport';
 export type PowerState = 'on' | 'standby' | 'sleep' | 'booting' | 'unknown';
 export type PowerCommand = keyof typeof POWER_COMMAND_BYTE;
 export type DeviceInformationField = keyof typeof DEVICE_INFORMATION_CHARACTERISTICS;
+export type PowerOutcome = 'reached' | 'progressing' | 'missed';
 
 export type LighthouseStatus = {
   readonly power: PowerState;
@@ -64,4 +65,10 @@ export function encodeIdentify(): Bytes {
 
 export function targetStateFor(command: PowerCommand): PowerState {
   return command;
+}
+
+export function powerOutcome(command: PowerCommand, state: PowerState): PowerOutcome {
+  if (state === targetStateFor(command)) return 'reached';
+  if (state === 'booting' && command !== 'sleep') return 'progressing';
+  return 'missed';
 }

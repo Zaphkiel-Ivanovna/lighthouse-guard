@@ -8,6 +8,7 @@ export type BleErrorCode =
   | 'timeout'
   | 'connectionFailed'
   | 'operationFailed'
+  | 'notReached'
   | 'deviceNotFound'
   | 'aborted'
   | 'unknown';

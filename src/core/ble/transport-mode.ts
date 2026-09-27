@@ -19,19 +19,20 @@ export const useTransportModeStore = create<TransportModeState>()(
   }),
 );
 
-let cached: { mode: TransportMode; client: LighthouseClient } | null = null;
+let nativeClient: LighthouseClient | null = null;
+let mockClient: LighthouseClient | null = null;
 
 export function getLighthouseClient(): LighthouseClient {
-  const { mode } = useTransportModeStore.getState();
-  if (cached && cached.mode === mode) return cached.client;
-
-  const transport = mode === 'mock' ? new MockBleTransport() : new NitroBleTransport();
-  cached = { mode, client: createLighthouseClient(transport) };
-  return cached.client;
+  if (useTransportModeStore.getState().mode === 'mock') {
+    mockClient ??= createLighthouseClient(new MockBleTransport());
+    return mockClient;
+  }
+  nativeClient ??= createLighthouseClient(new NitroBleTransport());
+  return nativeClient;
 }
 
 export function setTransportMode(mode: TransportMode): void {
   if (useTransportModeStore.getState().mode === mode) return;
-  cached = null;
+  mockClient = null;
   useTransportModeStore.setState({ mode });
 }

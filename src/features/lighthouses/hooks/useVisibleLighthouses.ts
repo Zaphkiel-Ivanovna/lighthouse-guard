@@ -11,7 +11,7 @@ import { sortLighthouses } from '../utils/sort';
 export function useShownLighthouses(): Lighthouse[] {
   const lighthouses = useLighthouseList();
   const hidden = usePreference('hiddenLighthouses');
-  return lighthouses.filter((lighthouse) => !(lighthouse.id in hidden));
+  return lighthouses.filter((lighthouse) => !Object.hasOwn(hidden, lighthouse.id));
 }
 
 export function useVisibleLighthouses(): Lighthouse[] {
@@ -30,7 +30,8 @@ export function useIsChannelShared(lighthouse: Lighthouse): boolean {
     (s) =>
       lighthouse.channel !== null &&
       Object.values(s.devices).some(
-        (other) => other.id !== lighthouse.id && other.channel === lighthouse.channel && !(other.id in hidden),
+        (other) =>
+          other.id !== lighthouse.id && other.channel === lighthouse.channel && !Object.hasOwn(hidden, other.id),
       ),
   );
 }

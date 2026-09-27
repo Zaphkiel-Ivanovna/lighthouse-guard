@@ -44,10 +44,12 @@ type UnknownRecord = Record<string, unknown>;
 const isRecord = (value: unknown): value is UnknownRecord =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
+const isFilled = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
+
 const stringRecord = (value: unknown): Record<string, string> =>
   isRecord(value)
     ? Object.fromEntries(
-        Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+        Object.entries(value).filter((entry): entry is [string, string] => isFilled(entry[0]) && isFilled(entry[1])),
       )
     : {};
 
@@ -55,12 +57,10 @@ const oneOf = <T>(value: unknown, allowed: readonly T[], fallback: T): T =>
   allowed.includes(value as T) ? (value as T) : fallback;
 
 const member = (value: unknown): GroupMember | null =>
-  isRecord(value) && typeof value.id === 'string' && typeof value.name === 'string'
-    ? { id: value.id, name: value.name }
-    : null;
+  isRecord(value) && isFilled(value.id) && isFilled(value.name) ? { id: value.id, name: value.name } : null;
 
 const group = (value: unknown): LighthouseGroup | null => {
-  if (!isRecord(value) || typeof value.id !== 'string' || typeof value.name !== 'string') return null;
+  if (!isRecord(value) || !isFilled(value.id) || !isFilled(value.name)) return null;
   const members = Array.isArray(value.members) ? value.members.map(member).filter((item) => item !== null) : [];
   return { id: value.id, name: value.name, members };
 };
@@ -135,7 +135,8 @@ export function remapBackup(backup: Backup, currentStations: Readonly<Record<str
   const currentIdByName = new Map(Object.entries(currentStations).map(([id, name]) => [name, id]));
   const remap = (id: string) => {
     const factoryName = backup.lighthouses.stations[id];
-    return (factoryName && currentIdByName.get(factoryName)) ?? id;
+    const currentId = factoryName === undefined ? undefined : currentIdByName.get(factoryName);
+    return currentId ?? id;
   };
   const remapKeys = (record: Readonly<Record<string, string>>) =>
     Object.fromEntries(Object.entries(record).map(([id, value]) => [remap(id), value]));

@@ -29,9 +29,20 @@ export class NitroBleTransport implements BleTransport {
     return ADAPTER_STATE[this.manager.state()];
   }
 
+  readonly #adapterListeners = new Set<(state: BleAdapterState) => void>();
+  #adapterSubscription: { remove(): void } | null = null;
+
   onAdapterStateChange(listener: (state: BleAdapterState) => void): () => void {
-    const subscription = this.manager.subscribeToStateChange((state) => listener(ADAPTER_STATE[state]));
-    return () => subscription.remove();
+    this.#adapterListeners.add(listener);
+    this.#adapterSubscription ??= this.manager.subscribeToStateChange((state) => {
+      const adapterState = ADAPTER_STATE[state];
+      [...this.#adapterListeners].forEach((each) => each(adapterState));
+    });
+    return () => {
+      if (!this.#adapterListeners.delete(listener) || this.#adapterListeners.size > 0) return;
+      this.#adapterSubscription?.remove();
+      this.#adapterSubscription = null;
+    };
   }
 
   startScan({ onDevice, onError }: ScanRequest): void {

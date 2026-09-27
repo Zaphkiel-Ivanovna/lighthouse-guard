@@ -1,6 +1,8 @@
 import {
+  BleError,
   ensureBlePermissions,
   getLighthouseClient,
+  powerOutcome,
   TIMING,
   toBleError,
   useTransportModeStore,
@@ -28,6 +30,8 @@ import {
 
 const logger = createLogger('lighthouses');
 
+let session = new AbortController();
+let pendingReads = new Map<string, Promise<void>>();
 let scanController: AbortController | null = null;
 
 export async function startScan(): Promise<void> {
@@ -44,9 +48,10 @@ export async function startScan(): Promise<void> {
       signal: controller.signal,
       durationMs: getPreference('scanDurationSeconds') * 1_000,
       onFound: (found) => {
+        if (controller.signal.aborted) return;
         upsertLighthouse(found);
         adoptStation(found.id, found.name);
-        if (refreshed.has(found.id) || found.id in getPreference('hiddenLighthouses')) return;
+        if (refreshed.has(found.id) || Object.hasOwn(getPreference('hiddenLighthouses'), found.id)) return;
         refreshed.add(found.id);
         void refreshPowerState(found.id);
       },
@@ -63,49 +68,62 @@ export function stopScan(): void {
   scanController?.abort();
 }
 
-const pendingReads = new Map<string, Promise<void>>();
-
 export function refreshPowerState(id: string): Promise<void> {
   const inFlight = pendingReads.get(id);
   if (inFlight) return inFlight;
   if (useLighthousesStore.getState().commands[id]?.status === 'pending') return Promise.resolve();
 
+  const { signal } = session;
+  const reads = pendingReads;
   const read = (async () => {
     try {
       const { power, channel } = await getLighthouseClient().readStatus(id);
+      if (signal.aborted) return;
       setLighthouseState(id, power);
       setLighthouseChannel(id, channel);
     } catch (error) {
       logger.warn(`could not read power state of ${id}`, error);
     } finally {
-      pendingReads.delete(id);
+      reads.delete(id);
     }
   })();
-  pendingReads.set(id, read);
+  reads.set(id, read);
   return read;
 }
 
-async function runCommand(id: string, command: () => Promise<void>): Promise<void> {
+async function runCommand(id: string, command: (signal: AbortSignal) => Promise<void>): Promise<void> {
   if (useLighthousesStore.getState().commands[id]?.status === 'pending') return;
+  const { signal } = session;
   setCommandStatus(id, { status: 'pending', error: null });
   try {
-    await command();
-    setCommandStatus(id, IDLE_COMMAND);
+    await command(signal);
+    if (!signal.aborted) setCommandStatus(id, IDLE_COMMAND);
   } catch (error) {
-    setCommandStatus(id, { status: 'error', error: toBleError(error).code });
+    if (!signal.aborted) setCommandStatus(id, { status: 'error', error: toBleError(error).code });
   }
 }
 
-export function setPower(id: string, command: PowerCommand): Promise<void> {
-  return runCommand(id, async () => {
-    const finalState = await getLighthouseClient().setPower(id, command, {
-      onUpdate: (state) => setLighthouseState(id, state),
-    });
-    setLighthouseState(id, finalState);
-  });
+function refreshLater(id: string, signal: AbortSignal): void {
+  setTimeout(() => {
+    if (!signal.aborted) void refreshPowerState(id);
+  }, TIMING.settleFollowUpMs);
 }
 
-let fleetController: AbortController | null = null;
+export function setPower(id: string, command: PowerCommand): Promise<void> {
+  return runCommand(id, async (signal) => {
+    const finalState = await getLighthouseClient().setPower(id, command, {
+      signal,
+      onUpdate: (state) => {
+        if (!signal.aborted) setLighthouseState(id, state);
+      },
+    });
+    if (signal.aborted) return;
+    setLighthouseState(id, finalState);
+    const outcome = powerOutcome(command, finalState);
+    if (outcome === 'missed') throw new BleError('notReached', `${id} stayed ${finalState} after ${command}`);
+    if (outcome === 'progressing') refreshLater(id, signal);
+  });
+}
 
 export async function setPowerAll(command: PowerCommand, scope?: readonly string[]): Promise<void> {
   const { devices, commands, fleet } = useLighthousesStore.getState();
@@ -114,53 +132,55 @@ export async function setPowerAll(command: PowerCommand, scope?: readonly string
   const ids = scopeIds.filter((id) => devices[id]?.state !== command && commands[id]?.status !== 'pending');
   if (ids.length === 0) return;
 
-  const controller = new AbortController();
-  fleetController = controller;
+  const { signal } = session;
   const client = getLighthouseClient();
   setFleetCommand({ status: 'pending', command, scopeIds });
   try {
     const written: string[] = [];
     ids.forEach((id) => setCommandStatus(id, { status: 'pending', error: null }));
     for (const id of ids) {
-      if (controller.signal.aborted) return;
+      if (signal.aborted) return;
       try {
         await client.writePower(id, command);
         written.push(id);
       } catch (error) {
-        setCommandStatus(id, { status: 'error', error: toBleError(error).code });
+        if (!signal.aborted) setCommandStatus(id, { status: 'error', error: toBleError(error).code });
       }
     }
-    await Promise.all(written.map((id) => settle(client, id, command, controller.signal)));
+    await Promise.all(written.map((id) => settle(client, id, command, signal)));
   } finally {
-    if (fleetController === controller) {
-      fleetController = null;
-      setFleetCommand(IDLE_FLEET);
-    }
+    if (!signal.aborted) setFleetCommand(IDLE_FLEET);
   }
 }
 
 async function settle(
   client: ReturnType<typeof getLighthouseClient>,
   id: string,
-  target: PowerState,
+  command: PowerCommand,
   signal: AbortSignal,
 ): Promise<void> {
   let lastError: unknown = null;
-  let lastState: PowerState | null = null;
+  let lastState: PowerState = 'unknown';
   for (let read = 0; read < TIMING.settleReads && !signal.aborted; read += 1) {
     try {
       lastState = await client.readPowerState(id);
+      if (signal.aborted) return;
       setLighthouseState(id, lastState);
       lastError = null;
-      if (lastState === target) break;
+      if (powerOutcome(command, lastState) === 'reached') break;
     } catch (error) {
       lastError = error;
     }
     await wait(TIMING.pollIntervalMs, signal).catch(() => undefined);
   }
   if (signal.aborted) return;
-  setCommandStatus(id, lastError ? { status: 'error', error: toBleError(lastError).code } : IDLE_COMMAND);
-  if (lastState === 'booting') setTimeout(() => void refreshPowerState(id), TIMING.settleFollowUpMs);
+  if (lastError) {
+    setCommandStatus(id, { status: 'error', error: toBleError(lastError).code });
+    return;
+  }
+  const outcome = powerOutcome(command, lastState);
+  setCommandStatus(id, outcome === 'missed' ? { status: 'error', error: 'notReached' } : IDLE_COMMAND);
+  if (outcome === 'progressing') refreshLater(id, signal);
 }
 
 export function showHiddenLighthouse(id: string): void {
@@ -177,12 +197,15 @@ export async function loadDetails(id: string, { force = false } = {}): Promise<v
   const current = useLighthousesStore.getState().details[id];
   if (current?.status === 'loading' || (current?.status === 'ready' && !force)) return;
   const previous = current?.data ?? null;
+  const { signal } = session;
   setDetails(id, { status: 'loading', data: previous });
   try {
     const data = await getLighthouseClient().readDetails(id);
+    if (signal.aborted) return;
     setLighthouseChannel(id, data.channel);
     setDetails(id, { status: 'ready', data });
   } catch (error) {
+    if (signal.aborted) return;
     logger.warn(`could not read details of ${id}`, error);
     setDetails(id, { status: 'error', data: previous });
   }
@@ -195,7 +218,8 @@ export function identify(id: string): Promise<void> {
 useTransportModeStore.subscribe((state, previous) => {
   if (state.mode === previous.mode) return;
   stopScan();
-  fleetController?.abort();
-  fleetController = null;
+  session.abort();
+  session = new AbortController();
+  pendingReads = new Map();
   clearLighthouses();
 });

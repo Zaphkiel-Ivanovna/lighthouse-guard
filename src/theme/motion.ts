@@ -2,7 +2,6 @@ import {
   Easing,
   FadeIn,
   FadeInDown,
-  FadeOut,
   LinearTransition,
   ReduceMotion,
   type WithSpringConfig,
@@ -22,7 +21,6 @@ export const easing = {
 export const timing = {
   fast: { duration: 160, easing: easing.out, reduceMotion: ReduceMotion.System },
   base: { duration: 260, easing: easing.out, reduceMotion: ReduceMotion.System },
-  slow: { duration: 420, easing: easing.inOut, reduceMotion: ReduceMotion.System },
   breath: { duration: 700, easing: easing.inOut, reduceMotion: ReduceMotion.System },
 } satisfies Record<string, WithTimingConfig>;
 
@@ -35,6 +33,5 @@ export const transitions = {
       .easing(easing.out)
       .reduceMotion(ReduceMotion.System),
   crossfadeIn: () => FadeIn.duration(timing.base.duration).reduceMotion(ReduceMotion.System),
-  crossfadeOut: () => FadeOut.duration(timing.fast.duration).reduceMotion(ReduceMotion.System),
   layout: () => LinearTransition.duration(280).easing(easing.out).reduceMotion(ReduceMotion.System),
 };

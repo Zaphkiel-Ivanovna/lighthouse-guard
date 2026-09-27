@@ -15,10 +15,9 @@ export function signalLevel(rssi: number): Level {
 
 type Props = {
   readonly rssi: number;
-  readonly tint?: { readonly filled: string; readonly empty: string };
 };
 
-export function SignalStrength({ rssi, tint }: Props) {
+export function SignalStrength({ rssi }: Props) {
   const { t } = useTranslation();
   const level = signalLevel(rssi);
 
@@ -30,7 +29,7 @@ export function SignalStrength({ rssi, tint }: Props) {
       accessibilityLabel={t(`lighthouses.signal.${level}`)}
     >
       {BARS.map((height, index) => (
-        <View key={height} style={styles.bar(height, index < FILLED[level], tint?.filled, tint?.empty)} />
+        <View key={height} style={styles.bar(height, index < FILLED[level])} />
       ))}
     </View>
   );
@@ -43,10 +42,10 @@ const styles = StyleSheet.create((theme) => ({
     gap: 2,
     height: BARS[BARS.length - 1],
   },
-  bar: (height: number, filled: boolean, filledColor?: string, emptyColor?: string) => ({
+  bar: (height: number, filled: boolean) => ({
     width: 3,
     height,
     borderRadius: 1.5,
-    backgroundColor: filled ? (filledColor ?? theme.colors.textMuted) : (emptyColor ?? theme.colors.border),
+    backgroundColor: filled ? theme.colors.textMuted : theme.colors.border,
   }),
 }));

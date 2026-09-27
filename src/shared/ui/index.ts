@@ -1,11 +1,10 @@
 export { AnimatedSplash } from './AnimatedSplash';
 export { Banner } from './Banner';
 export { Button, type ButtonVariant } from './Button';
-export { Card } from './Card';
 export { EmptyState } from './EmptyState';
 export { GradientLayer } from './GradientLayer';
 export { Icon, type IconName } from './Icon';
-export { IconBadge, type BadgeTint } from './IconBadge';
+export { IconBadge } from './IconBadge';
 export { ListRow } from './ListRow';
 export { ListSection } from './ListSection';
 export { Orbit } from './Orbit';

@@ -42,7 +42,7 @@ src/
     logger/, utils/
   theme/                       tokens → light/dark themes → StyleSheet.configure, theme preference
   shared/
-    ui/                        Text, Button, Icon, Card, Chip, Screen, ListSection, ListRow, Switch, TextField, Banner, EmptyState
+    ui/                        Text, Button, Icon, IconBadge, Screen, TabScreen, ListSection, ListRow, Switch, TextField, Banner, EmptyState
     navigation/                shared Stack screen options
     utils/                     haptics
   features/

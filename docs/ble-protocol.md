@@ -70,6 +70,10 @@ The UI never locks controls on `booting`: a booting unit can still be put to sle
 | Poll interval after a power write | 1 s                                     |
 | Poll timeout                      | 15 s (sleep → on typically takes 3–8 s) |
 
+When the poll timeout ends, `powerOutcome` judges the last state read. The target state means success. A unit still `booting` towards `on` or `standby` counts as progress: the command ends and the unit is read again 5 s later. Any other state fails the command with `notReached`.
+
+Every session checks the Bluetooth adapter before connecting, so a command sent with Bluetooth off fails with `poweredOff` instead of a connect timeout. `readDetails` returns missing Device Information fields as `null` only after a power read confirms the link is still up. Otherwise it fails, so the detail screen offers _Read again_.
+
 ## Adding a capability
 
 Follow the `lighthouse-protocol` skill:

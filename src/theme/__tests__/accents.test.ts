@@ -1,4 +1,4 @@
-import { ACCENT_NAMES, ACCENTS, applyAccent } from '../accents';
+import { ACCENT_NAMES, ACCENTS, applyAccent, isAccentName } from '../accents';
 import { mix, SUBTLE_SHIFT } from '../color';
 import { darkTheme, lightTheme } from '../themes';
 
@@ -74,5 +74,10 @@ describe('accent presets', () => {
       expect(pink).toContain(`${theme.colors.background} 62%`);
       expect(applyAccent(theme, mode, 'cyan').gradients.sky).toBe(theme.gradients.sky);
     }
+  });
+
+  it('only accepts the preset names, not inherited object keys', () => {
+    expect(ACCENT_NAMES.every(isAccentName)).toBe(true);
+    expect(['constructor', 'toString', '__proto__', 'hasOwnProperty', '', 42, null].some(isAccentName)).toBe(false);
   });
 });

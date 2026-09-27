@@ -51,6 +51,40 @@ describe('backup', () => {
     expect(parsed?.appearance).toEqual({ theme: 'system', accent: 'pink' });
   });
 
+  it('drops blank names and ids so no station or group ends up with an empty label', () => {
+    const parsed = parseBackup(
+      JSON.stringify({
+        app: BACKUP_APP,
+        version: 1,
+        lighthouses: {
+          names: { a: '', b: '   ', c: 'Left', '': 'Ghost' },
+          stations: { a: '', c: 'LHB-1A2B3C4D' },
+          groups: [
+            { id: 'g', name: ' ', members: [] },
+            { id: 'h', name: 'Desk', members: [{ id: 'c', name: '' }] },
+          ],
+        },
+      }),
+    );
+
+    expect(parsed?.lighthouses.names).toEqual({ c: 'Left' });
+    expect(parsed?.lighthouses.stations).toEqual({ c: 'LHB-1A2B3C4D' });
+    expect(parsed?.lighthouses.groups).toEqual([{ id: 'h', name: 'Desk', members: [] }]);
+  });
+
+  it('keeps the original id when a station has no known factory name', () => {
+    const backup: Backup = {
+      app: BACKUP_APP,
+      version: 1,
+      exportedAt: '',
+      lighthouses: { ...DATA, names: { unknown: 'Attic' }, stations: {} },
+      preferences: DEFAULT_PREFERENCES,
+      appearance: { theme: 'system', accent: 'cyan' },
+    };
+
+    expect(remapBackup(backup, { '': 'LHB-1A2B3C4D' }).lighthouses.names).toEqual({ unknown: 'Attic' });
+  });
+
   it('matches stations by factory name when the Bluetooth ids changed', () => {
     const backup: Backup = {
       app: BACKUP_APP,

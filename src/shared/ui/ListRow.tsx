@@ -5,7 +5,7 @@ import { StyleSheet, withUnistyles } from 'react-native-unistyles';
 import { haptics } from '@/shared/utils/haptics';
 
 import { Icon, type IconName } from './Icon';
-import { IconBadge, type BadgeTint } from './IconBadge';
+import { IconBadge } from './IconBadge';
 import { Text } from './Text';
 
 const CHEVRON: IconName = { ios: 'chevron.right', android: 'chevron_right' };
@@ -21,13 +21,13 @@ type Props = {
   readonly value?: string;
   readonly icon?: IconName;
   readonly leading?: ReactNode;
-  readonly iconTint?: BadgeTint;
   readonly accessory?: 'chevron' | 'check' | ReactNode;
   readonly destructive?: boolean;
   readonly onPress?: () => void;
   readonly selected?: boolean;
   readonly checked?: boolean;
   readonly loading?: boolean;
+  readonly disabled?: boolean;
   readonly testID?: string;
 };
 
@@ -37,19 +37,18 @@ export function ListRow({
   value,
   icon,
   leading,
-  iconTint,
   accessory,
   destructive = false,
   onPress,
   selected,
   checked,
   loading = false,
+  disabled = false,
   testID,
 }: Props) {
-  const badgeTint = iconTint ?? (destructive ? 'red' : 'accent');
   const content = (
     <>
-      {leading ?? (icon && <IconBadge icon={icon} tint={badgeTint} />)}
+      {leading ?? (icon && <IconBadge icon={icon} tint={destructive ? 'red' : 'accent'} />)}
       <View style={styles.texts}>
         <Text tone={destructive ? 'danger' : 'primary'}>{title}</Text>
         {subtitle && (
@@ -96,9 +95,9 @@ export function ListRow({
       onPress={handlePress}
       accessibilityRole={checked === undefined ? 'button' : 'checkbox'}
       accessibilityLabel={[title, subtitle, value].filter(Boolean).join(', ')}
-      disabled={loading}
-      accessibilityState={{ selected, checked, busy: loading, disabled: loading }}
-      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+      disabled={loading || disabled}
+      accessibilityState={{ selected, checked, busy: loading, disabled: loading || disabled }}
+      style={({ pressed }) => [styles.row, pressed && styles.pressed, disabled && styles.disabled]}
     >
       {content}
     </Pressable>
@@ -116,6 +115,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   pressed: {
     backgroundColor: theme.colors.surfaceMuted,
+  },
+  disabled: {
+    opacity: 0.45,
   },
   texts: {
     flex: 1,

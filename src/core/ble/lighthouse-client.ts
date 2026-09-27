@@ -1,7 +1,7 @@
 import { createLogger } from '@/core/logger';
 import { TimeoutError, wait, withTimeout } from '@/core/utils/async';
 
-import { BleError, toBleError } from './errors';
+import { BleError, toBleError, type BleErrorCode } from './errors';
 import {
   DEVICE_INFORMATION_CHARACTERISTICS,
   DEVICE_INFORMATION_SERVICE,
@@ -60,54 +60,59 @@ export type LighthouseClient = {
 
 const DEVICE_INFORMATION_FIELDS = Object.keys(DEVICE_INFORMATION_CHARACTERISTICS) as DeviceInformationField[];
 
-const ADAPTER_ERRORS = {
+const ADAPTER_ERRORS: Partial<Record<BleAdapterState, BleErrorCode>> = {
   poweredOff: 'poweredOff',
   unauthorized: 'unauthorized',
   unsupported: 'unsupported',
-} as const;
+};
 
 const isSettled = (state: BleAdapterState) => state !== 'unknown' && state !== 'resetting';
+
+const adapterError = (state: BleAdapterState): BleError | null => {
+  const code = ADAPTER_ERRORS[state];
+  return code ? new BleError(code, `Bluetooth adapter is ${state}`) : null;
+};
 
 export function createLighthouseClient(
   transport: BleTransport,
   queue: SerialQueue = createSerialQueue(),
 ): LighthouseClient {
-  const settledAdapterState = (signal: AbortSignal) =>
+  const settledAdapterState = (timeoutMs: number, signal?: AbortSignal) =>
     new Promise<BleAdapterState>((resolve) => {
       const current = transport.getAdapterState();
-      if (isSettled(current) || signal.aborted) {
+      if (isSettled(current) || signal?.aborted) {
         resolve(current);
         return;
       }
       const finish = () => {
         clearTimeout(timer);
         unsubscribe();
-        signal.removeEventListener('abort', finish);
+        signal?.removeEventListener('abort', finish);
         resolve(transport.getAdapterState());
       };
-      const timer = setTimeout(finish, TIMING.adapterReadyTimeoutMs);
+      const timer = setTimeout(finish, timeoutMs);
       const unsubscribe = transport.onAdapterStateChange((state) => {
         if (isSettled(state)) finish();
       });
-      signal.addEventListener('abort', finish, { once: true });
+      signal?.addEventListener('abort', finish, { once: true });
     });
 
-  const assertAdapterReady = async (signal: AbortSignal) => {
-    const state = await settledAdapterState(signal);
-    if (signal.aborted) return;
-    if (state in ADAPTER_ERRORS) {
-      throw new BleError(ADAPTER_ERRORS[state as keyof typeof ADAPTER_ERRORS], `Bluetooth adapter is ${state}`);
-    }
+  const assertAdapterReady = async (timeoutMs: number, signal?: AbortSignal) => {
+    const state = await settledAdapterState(timeoutMs, signal);
+    if (signal?.aborted) return;
+    const error = adapterError(state);
+    if (error) throw error;
     if (!isSettled(state)) throw new BleError('unknown', `Bluetooth adapter is still ${state}`);
   };
 
   const withConnection = <T>(deviceId: string, session: () => Promise<T>): Promise<T> =>
     queue.run(async () => {
+      await assertAdapterReady(TIMING.connectTimeoutMs);
       try {
         await withTimeout(transport.connect(deviceId), TIMING.connectTimeoutMs, `connect ${deviceId}`);
         return await session();
       } catch (error) {
-        throw toBleError(error, 'operationFailed');
+        throw adapterError(transport.getAdapterState()) ?? toBleError(error, 'operationFailed');
       } finally {
         await withTimeout(transport.disconnect(deviceId), TIMING.operationTimeoutMs, `disconnect ${deviceId}`).catch(
           (error: unknown) => logger.warn(`disconnect ${deviceId} failed`, error),
@@ -142,6 +147,10 @@ export function createLighthouseClient(
     }
   };
 
+  const assertStillConnected = async (deviceId: string) => {
+    await readPower(deviceId);
+  };
+
   const readDetails = async (deviceId: string): Promise<LighthouseDetails> => {
     const channel = await readOptional(
       deviceId,
@@ -167,9 +176,11 @@ export function createLighthouseClient(
       hardware: information.hardware ?? null,
       manufacturer: information.manufacturer ?? null,
     };
-    if (Object.values(details).every((value) => value === null)) {
+    const values = Object.values(details);
+    if (values.every((value) => value === null)) {
       throw new BleError('operationFailed', `${deviceId}: no detail could be read`);
     }
+    if (values.some((value) => value === null)) await assertStillConnected(deviceId);
     logger.debug(`${deviceId}: details`, details);
     return details;
   };
@@ -178,33 +189,33 @@ export function createLighthouseClient(
     transportKind: transport.kind,
 
     async scan({ signal, onFound, durationMs = TIMING.scanDurationMs }) {
-      await assertAdapterReady(signal);
+      await assertAdapterReady(TIMING.adapterReadyTimeoutMs, signal);
       if (signal.aborted) return;
 
       const stop = new AbortController();
       const onAbort = () => stop.abort();
-      signal.addEventListener('abort', onAbort, { once: true });
       const errors: BleError[] = [];
 
-      transport.startScan({
-        onDevice: (device) => {
-          if (isLighthouseName(device.name)) onFound({ id: device.id, name: device.name, rssi: device.rssi });
-        },
-        onError: (error) => {
-          errors.push(error);
-          stop.abort();
-        },
-      });
-
+      signal.addEventListener('abort', onAbort, { once: true });
       try {
-        await wait(durationMs, stop.signal);
-      } catch {
+        transport.startScan({
+          onDevice: (device) => {
+            if (isLighthouseName(device.name)) onFound({ id: device.id, name: device.name, rssi: device.rssi });
+          },
+          onError: (error) => {
+            errors.push(error);
+            stop.abort();
+          },
+        });
+        await wait(durationMs, stop.signal).catch(() => undefined);
+      } catch (error) {
+        throw adapterError(transport.getAdapterState()) ?? toBleError(error, 'operationFailed');
       } finally {
         signal.removeEventListener('abort', onAbort);
         transport.stopScan();
       }
       const [firstError] = errors;
-      if (firstError) throw firstError;
+      if (firstError) throw adapterError(transport.getAdapterState()) ?? firstError;
     },
 
     readPowerState: (deviceId) => withConnection(deviceId, () => readPower(deviceId)),

@@ -37,6 +37,6 @@ errors.ts              BleError normalisation (codes and user-facing i18n keys)
 - Identify characteristic `00008421-…`: write `0x00` to blink the LED.
 - Channel characteristic `00001524-…`: read, 1 byte, channel 1–16 (writing it changes the RF channel; not exposed in the app).
 - Device Information Service `180A` (model, serial, firmware, hardware, manufacturer): optional ASCII strings, read with `readDetails` in one session. A missing field is `null`, never an error.
-- After a power write, poll the state about every 1 s until it reaches the target, or give up after 15 s.
+- After a power write, poll the state about every 1 s until it reaches the target, or give up after 15 s. `powerOutcome` then decides: target reached is success, `booting` towards on/standby is progress (read again later), anything else fails with `notReached`. Never report a missed target as success.
 
 See `docs/ble-protocol.md` and the `lighthouse-protocol` skill for adding commands.

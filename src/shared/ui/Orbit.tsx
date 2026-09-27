@@ -1,3 +1,4 @@
+import { useIsFocused } from 'expo-router';
 import { useEffect } from 'react';
 import Animated, {
   cancelAnimation,
@@ -21,16 +22,18 @@ type Props = {
 
 export function Orbit({ size, color, thickness = 2, periodMs = 1600 }: Props) {
   const reduceMotion = useReduceMotion();
+  const isFocused = useIsFocused();
+  const shouldSpin = isFocused && !reduceMotion;
   const rotation = useSharedValue(0);
 
   useEffect(() => {
-    if (reduceMotion) {
+    if (!shouldSpin) {
       rotation.set(0);
       return;
     }
     rotation.set(withRepeat(withTiming(360, { duration: periodMs, easing: Easing.linear }), -1, false));
     return () => cancelAnimation(rotation);
-  }, [periodMs, reduceMotion, rotation]);
+  }, [periodMs, rotation, shouldSpin]);
 
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${rotation.get()}deg` }] }));
 

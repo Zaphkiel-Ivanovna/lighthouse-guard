@@ -214,4 +214,91 @@ describe('LighthouseClient (against MockBleTransport)', () => {
       code: 'poweredOff',
     });
   });
+
+  it('reports Bluetooth being off instead of timing out when a command needs a connection', async () => {
+    transport.setAdapterState('poweredOff');
+    const connect = jest.spyOn(transport, 'connect');
+
+    await expect(client.setPower(SLEEPING, 'on')).rejects.toMatchObject({ code: 'poweredOff' });
+    await expect(client.identify(SLEEPING)).rejects.toMatchObject({ code: 'poweredOff' });
+    expect(connect).not.toHaveBeenCalled();
+  });
+
+  it('fails instead of returning partial details when the link drops during the reads', async () => {
+    const read = transport.read.bind(transport);
+    jest.spyOn(transport, 'read').mockImplementation(async (id, service, characteristic) => {
+      const bytes = await read(id, service, characteristic);
+      if (characteristic === LIGHTHOUSE_V2_CHARACTERISTICS.channel) transport.dropConnection(id);
+      return bytes;
+    });
+
+    const details = client.readDetails(SLEEPING);
+    details.catch(() => undefined);
+    await jest.advanceTimersByTimeAsync(200);
+
+    await expect(details).rejects.toMatchObject({ code: 'operationFailed' });
+  });
+
+  it('stops the scan and reports a BleError when the native scan fails to start', async () => {
+    jest.spyOn(transport, 'startScan').mockImplementation(() => {
+      throw new Error('scan refused');
+    });
+    const stopScan = jest.spyOn(transport, 'stopScan');
+    const controller = new AbortController();
+    const removeListener = jest.spyOn(controller.signal, 'removeEventListener');
+
+    await expect(client.scan({ signal: controller.signal, onFound: jest.fn() })).rejects.toMatchObject({
+      code: 'operationFailed',
+    });
+    expect(stopScan).toHaveBeenCalled();
+    expect(removeListener).toHaveBeenCalledWith('abort', expect.any(Function));
+  });
+
+  it('stops polling and disconnects when a power command is aborted', async () => {
+    const controller = new AbortController();
+    const result = client.setPower(SLEEPING, 'on', { signal: controller.signal });
+    result.catch(() => undefined);
+    await jest.advanceTimersByTimeAsync(100);
+
+    controller.abort();
+    await jest.advanceTimersByTimeAsync(100);
+
+    await expect(result).rejects.toMatchObject({ code: 'aborted' });
+    expect(transport.isConnected(SLEEPING)).toBe(false);
+  });
+
+  it('reports Bluetooth turned off in the middle of a command', async () => {
+    const result = client.setPower(SLEEPING, 'on');
+    result.catch(() => undefined);
+    await jest.advanceTimersByTimeAsync(100);
+
+    transport.setAdapterState('poweredOff');
+    await jest.advanceTimersByTimeAsync(2_000);
+
+    await expect(result).rejects.toMatchObject({ code: 'poweredOff' });
+    expect(transport.isConnected(SLEEPING)).toBe(false);
+  });
+
+  it('waits for a resetting adapter before connecting', async () => {
+    transport.setAdapterState('resetting');
+    const state = client.readPowerState(SLEEPING);
+    await jest.advanceTimersByTimeAsync(500);
+
+    transport.setAdapterState('poweredOn');
+    await jest.advanceTimersByTimeAsync(100);
+
+    await expect(state).resolves.toBe('sleep');
+  });
+
+  it('gives up without connecting when the adapter never settles', async () => {
+    transport.setAdapterState('unknown');
+    const connect = jest.spyOn(transport, 'connect');
+    const state = client.readPowerState(SLEEPING);
+    state.catch(() => undefined);
+
+    await jest.advanceTimersByTimeAsync(10_000);
+
+    await expect(state).rejects.toMatchObject({ code: 'unknown' });
+    expect(connect).not.toHaveBeenCalled();
+  });
 });

@@ -1,3 +1,4 @@
+import { useIsFocused } from 'expo-router';
 import Animated from 'react-native-reanimated';
 import { StyleSheet } from 'react-native-unistyles';
 
@@ -14,8 +15,9 @@ type Props = {
 
 export function PulseRings({ size, color, rings = 3, periodMs = 2200 }: Props) {
   const reduceMotion = useReduceMotion();
+  const isFocused = useIsFocused();
 
-  if (reduceMotion) {
+  if (reduceMotion || !isFocused) {
     return <Animated.View pointerEvents='none' style={styles.still(size, color)} />;
   }
 
