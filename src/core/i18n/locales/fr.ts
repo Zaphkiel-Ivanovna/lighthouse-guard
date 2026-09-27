@@ -53,7 +53,7 @@ export const fr = {
       unknown: 'Inconnu',
     },
     card: {
-      model: 'Base Station 2.0',
+      model: 'Station de base 2.0',
       a11yLabel: '{{name}}, {{state}}',
       togglePower: 'Basculer l’alimentation de {{name}}',
       channel: 'Canal {{channel}}',

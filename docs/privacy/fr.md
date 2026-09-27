@@ -2,7 +2,7 @@
 
 _Date d’entrée en vigueur : 27 septembre 2026_
 
-Lighthouse Guard est une app publiée par Damien Dubernet qui pilote les SteamVR Base Station 2.0 en Bluetooth. Cette politique explique ce que deviennent vos informations quand vous l’utilisez.
+Lighthouse Guard est une app publiée par Damien Dubernet qui pilote les stations de base SteamVR 2.0 en Bluetooth. Cette politique explique ce que deviennent vos informations quand vous l’utilisez.
 
 ## En résumé
 
