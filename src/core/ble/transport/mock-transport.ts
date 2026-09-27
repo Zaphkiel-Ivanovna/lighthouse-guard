@@ -48,10 +48,10 @@ export type MockBleTransportOptions = {
 };
 
 const MOCK_INFORMATION: MockDeviceInformation = {
-  model: 'Simulated Base Station 2.0',
-  firmware: 'mock-1.0',
-  hardware: 'mock',
-  manufacturer: 'Lighthouse Guard (simulation)',
+  model: '1004',
+  firmware: 'R: 2.9.2004771 M: 1.8.2004742 B: 3.4.3782793',
+  hardware: '0.0',
+  manufacturer: 'Valve Corp.',
 };
 
 export const DEFAULT_MOCK_LIGHTHOUSES: readonly MockLighthouseSeed[] = [
@@ -60,14 +60,14 @@ export const DEFAULT_MOCK_LIGHTHOUSES: readonly MockLighthouseSeed[] = [
     powerByte: POWER_STATE_BYTE.sleep,
     rssi: -52,
     channel: 1,
-    information: { ...MOCK_INFORMATION, serial: '1A2B3C4D' },
+    information: { ...MOCK_INFORMATION, serial: 'FB01A2B3C4 V001017-20.A' },
   },
   {
     name: 'LHB-5E6F7A8B',
     powerByte: POWER_STATE_BYTE.standby,
     rssi: -64,
     channel: 2,
-    information: { ...MOCK_INFORMATION, serial: '5E6F7A8B' },
+    information: { ...MOCK_INFORMATION, serial: 'FB05E6F7A8 V001017-20.A' },
   },
   { name: 'LHB-9C0D1E2F', powerByte: POWER_STATE_BYTE.awakeFromSleep, rssi: -71, channel: 3 },
 ];

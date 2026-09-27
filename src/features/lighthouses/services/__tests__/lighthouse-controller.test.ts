@@ -100,7 +100,7 @@ describe('lighthouse controller (debug mode)', () => {
     expect(readDetails).toHaveBeenCalledTimes(1);
     expect(useLighthousesStore.getState().details[SLEEPING]).toEqual({
       status: 'ready',
-      data: expect.objectContaining({ channel: 1, serial: '1A2B3C4D' }),
+      data: expect.objectContaining({ channel: 1, serial: 'FB01A2B3C4 V001017-20.A' }),
     });
 
     const forced = loadDetails(SLEEPING, { force: true });
@@ -168,7 +168,7 @@ describe('lighthouse controller (debug mode)', () => {
 
     await loadDetails(SLEEPING, { force: true });
 
-    expect(previous).toEqual(expect.objectContaining({ serial: '1A2B3C4D' }));
+    expect(previous).toEqual(expect.objectContaining({ serial: 'FB01A2B3C4 V001017-20.A' }));
     expect(useLighthousesStore.getState().details[SLEEPING]).toEqual({ status: 'error', data: previous });
     readDetails.mockRestore();
     warn.mockRestore();
