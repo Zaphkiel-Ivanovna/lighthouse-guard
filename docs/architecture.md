@@ -6,13 +6,13 @@
 ┌──────────────────────────────────────────────────────────────┐
 │ src/app         expo-router routes & layouts (thin)          │
 ├──────────────────────────────────────────────────────────────┤
-│ src/features    lighthouses · settings · faq · (groups…)     │
+│ src/features    lighthouses (+ groups) · settings · faq      │
 ├──────────────────────────────────────────────────────────────┤
 │ src/shared      ui/ (design system) · navigation/ · utils/   │
 ├──────────────────────────────────────────────────────────────┤
 │ src/theme       tokens · themes · breakpoints · unistyles    │
 ├──────────────────────────────────────────────────────────────┤
-│ src/core        ble/ · storage/ · i18n/ · logger/ · utils/   │
+│ src/core        ble/ · app-icon/ · storage/ · i18n/ · logger │
 └──────────────────────────────────────────────────────────────┘
           imports only flow downwards (enforced by ESLint + hooks)
 ```
@@ -27,7 +27,7 @@ src/
     _layout.tsx                ThemeProvider (navigation colours from Unistyles) + root Stack
     (tabs)/_layout.tsx         NativeTabs: lighthouses · settings · faq
     (tabs)/(lighthouses)/      Stack: list → lighthouse/[id] → lighthouse/[id]/rename (form sheet)
-    (tabs)/settings/, faq/     Stacks with large titles
+    (tabs)/settings/, faq/     Stacks whose roots draw their own header (TabScreen)
   core/
     ble/
       transport/               BleTransport contract · NitroBleTransport · MockBleTransport
@@ -76,12 +76,15 @@ PowerToggle (tap)
 | ------------------------- | -------------------------- | --------- | ---------------------------------------------------------- |
 | `useLighthousesStore`     | features/lighthouses/store | no        | discovered devices, scan status, per-device command status |
 | `useDeviceNamesStore`     | features/lighthouses/store | MMKV      | custom names                                               |
+| `useGroupsStore`          | features/lighthouses/store | MMKV      | groups, startup group (the shown group is session-only)    |
+| `useListLayoutStore`      | features/lighthouses/store | MMKV      | `list` or `grid`                                           |
+| `usePreferencesStore`     | core/preferences           | MMKV      | behaviour, scanning and display settings, hidden stations  |
 | `useTransportModeStore`   | core/ble                   | MMKV      | `native` or `mock`                                         |
-| `useThemePreferenceStore` | theme                      | MMKV      | `system` · `light` · `dark`                                |
+| `useThemePreferenceStore` | theme                      | MMKV      | `system` · `light` · `dark`, accent                        |
 
 ## Roadmap hooks
 
-- **Groups and global actions** ("Living room", "Turn everything on"): new `features/groups/` (persisted groups plus a controller that loops over `setPower`). The serial queue already makes batched commands safe.
+- **Global actions and groups**: done. `FleetControlCard` turns the shown units on or to sleep via `setPowerAll(command, scopeIds)`, which writes to each unit, then polls them. Groups live inside `features/lighthouses` (they only organise lighthouses, and a separate slice would import `lighthouses` both ways): `groups.store.ts` persists groups and the startup group, and `activeGroupId` is restored from the startup group on launch. The hero title (`GroupSwitcher`) opens the `/groups` sheet; `/groups/edit` creates or edits a group; Settings → Groups picks the startup group.
 - **Widgets / Live Activities**: `expo-widgets` (SDK 58), declared in `app.config.ts`. Share state with the app by moving the MMKV instance to an App Group container (`core/storage`).
 - **Siri / Shortcuts / App Intents**: `expo-app-intents` (alpha, SDK 58), with Swift intent files in `app-intents/` at the repo root. Intents call into the same BLE client via a small native↔JS bridge or a headless task.
 - **Background automations**: enable `isBackgroundEnabled` and `modes: ['central']` in the ble-nitro plugin, plus iOS state restoration (`restoreIdentifier`).
