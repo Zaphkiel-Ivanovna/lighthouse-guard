@@ -115,7 +115,7 @@ def main():
            os.path.join(IMAGES, "android-icon-background.png"), opaque=True)
     render(svg(False, {"from": "#FFFFFF", "to": "#FFFFFF"}, ADAPTIVE_SCALE, palette, gloss=0),
            os.path.join(IMAGES, "android-icon-monochrome.png"))
-    rounded(os.path.join(default, "ios-light.png"), os.path.join(ROOT, "docs", "images", "logo.png"), 256)
+    rounded(os.path.join(default, "ios-light.png"), os.path.join(ROOT, "docs", "assets", "logo.png"), 256)
     shutil.rmtree(default)
 
 

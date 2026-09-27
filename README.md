@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/images/logo.png" width="112" alt="Lighthouse Guard app icon" />
+<img src="docs/assets/logo.png" width="112" alt="Lighthouse Guard app icon" />
 
 # Lighthouse Guard
 
@@ -18,22 +18,24 @@ No PC, no SteamVR, no cable: just Bluetooth.
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/home-dark.webp" />
-    <img src="docs/images/home-light.webp" width="23%" alt="Base stations with fleet controls" />
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dark/01-home.webp" />
+    <img src="docs/screenshots/light/01-home.webp" width="23%" alt="Base stations with fleet controls" />
   </picture>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/groups-dark.webp" />
-    <img src="docs/images/groups-light.webp" width="23%" alt="Group picker" />
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dark/03-groups.webp" />
+    <img src="docs/screenshots/light/03-groups.webp" width="23%" alt="Group picker" />
   </picture>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/detail-dark.webp" />
-    <img src="docs/images/detail-light.webp" width="23%" alt="Base station detail" />
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dark/05-detail.webp" />
+    <img src="docs/screenshots/light/05-detail.webp" width="23%" alt="Base station detail" />
   </picture>
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/settings-dark.webp" />
-    <img src="docs/images/settings-light.webp" width="23%" alt="Settings" />
+    <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/dark/07-settings.webp" />
+    <img src="docs/screenshots/light/07-settings.webp" width="23%" alt="Settings" />
   </picture>
 </p>
+
+<p align="center"><a href="docs/screenshots/README.md">See every screen, in light and dark →</a></p>
 
 ## Contents
 
