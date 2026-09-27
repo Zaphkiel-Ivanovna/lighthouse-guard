@@ -39,3 +39,6 @@ yarn-error.*
 
 .claude/settings.local.json
 .claude/.cache/
+
+/store/captures/
+/store/screenshots/

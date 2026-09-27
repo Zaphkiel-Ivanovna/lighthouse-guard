@@ -1,0 +1,88 @@
+{
+  "slides": [
+    {
+      "id": "01-control",
+      "capture": "home",
+      "theme": "light"
+    },
+    {
+      "id": "02-fleet",
+      "capture": "fleet",
+      "theme": "dark"
+    },
+    {
+      "id": "03-modes",
+      "capture": "detail",
+      "theme": "light"
+    },
+    {
+      "id": "04-groups",
+      "capture": "groups",
+      "theme": "dark"
+    },
+    {
+      "id": "05-details",
+      "capture": "info",
+      "theme": "light"
+    },
+    {
+      "id": "06-appearance",
+      "capture": "appearance",
+      "theme": "dark"
+    }
+  ],
+  "copy": {
+    "en-US": {
+      "01-control": {
+        "title": "Every base station, [[one tap away]]",
+        "subtitle": "Turn your SteamVR Base Stations 2.0 on, to standby or to sleep over Bluetooth."
+      },
+      "02-fleet": {
+        "title": "All on. [[All off.]]",
+        "subtitle": "Fleet actions wake or rest every station at once, with live progress."
+      },
+      "03-modes": {
+        "title": "Three modes, [[one switch]]",
+        "subtitle": "On, standby or sleep: choose how deeply each station rests."
+      },
+      "04-groups": {
+        "title": "Grouped [[by room]]",
+        "subtitle": "Create groups and control only the play space you need."
+      },
+      "05-details": {
+        "title": "Every detail [[at hand]]",
+        "subtitle": "Channel, firmware, model and serial number for each station."
+      },
+      "06-appearance": {
+        "title": "Made [[yours]]",
+        "subtitle": "Light or dark theme, seven accent colours and ten app icons."
+      }
+    },
+    "fr-FR": {
+      "01-control": {
+        "title": "Vos base stations, [[au bout du doigt]]",
+        "subtitle": "Allumez, mettez en veille ou endormez vos SteamVR Base Station 2.0 en Bluetooth."
+      },
+      "02-fleet": {
+        "title": "Tout allumer. [[Tout éteindre.]]",
+        "subtitle": "Réveillez ou reposez toutes vos stations d’un coup, avec la progression en direct."
+      },
+      "03-modes": {
+        "title": "Trois modes, [[un seul bouton]]",
+        "subtitle": "Allumée, en veille ou en sommeil : choisissez le repos de chaque station."
+      },
+      "04-groups": {
+        "title": "Rangées [[par pièce]]",
+        "subtitle": "Créez des groupes et ne pilotez que l’espace de jeu qui vous intéresse."
+      },
+      "05-details": {
+        "title": "Chaque détail [[sous la main]]",
+        "subtitle": "Canal, firmware, modèle et numéro de série de chaque station."
+      },
+      "06-appearance": {
+        "title": "Rien qu’à [[vous]]",
+        "subtitle": "Thème clair ou sombre, sept couleurs d’accent et dix icônes d’app."
+      }
+    }
+  }
+}
